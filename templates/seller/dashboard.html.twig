@@ -1,0 +1,199 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Avella — Mon Dashboard{% endblock %}
+
+{% block body %}
+
+    <!-- NAVBAR -->
+    <header class="sticky top-0 isolate z-50 border-b border-black/10 bg-[#c99f85]/95 backdrop-blur-md">
+        <div class="mx-auto flex w-full max-w-[1400px] items-center gap-2 px-3 py-3 sm:px-4">
+            <div class="flex shrink-0 items-center gap-3">
+                <span class="font-serif text-2xl text-[#4f3222]">Avella</span>
+                <nav class="hidden items-center gap-1 md:flex">
+                    <a href="/" class="rounded-full px-4 py-2 text-sm font-medium text-[#4f3222] hover:bg-white/30">Home</a>
+                    <a href="{{ path('produit_index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-[#4f3222] hover:bg-white/30">Explorer</a>
+                </nav>
+            </div>
+            <div class="ml-auto flex items-center gap-2">
+                {% if app.user %}
+                    <span class="text-sm text-[#4f3222]">{{ app.user.nom }}</span>
+                    <a href="{{ path('app_logout') }}" class="rounded-full bg-[#755440] px-4 py-2 text-sm text-white hover:bg-[#4f3222]">Déconnexion</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if boutique %}
+        <div class="mx-auto max-w-[1400px] px-6 mt-10">
+
+            <!-- HEADER SECTION -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="font-serif text-3xl text-[#5c3202]">{{ boutique.nom }}</h1>
+                    <p class="text-sm text-[#75502a] mt-1">{{ produits|length }} produit(s) dans votre boutique</p>
+                </div>
+                <button onclick="openModal('modal-ajout')"
+                        class="bg-[#ccab89] text-[#4c3e14] font-bold font-serif rounded-2xl px-6 py-3
+                       hover:bg-[#f3d38d] hover:border-2 hover:border-[#382301] transition">
+                    + Ajouter un produit
+                </button>
+            </div>
+
+            <!-- GRILLE PRODUITS -->
+            <div class="flex flex-wrap justify-center gap-x-5 gap-y-8">
+                {% if produits is empty %}
+                    <p class="text-[#75502a] text-center w-full mt-20 text-lg">
+                        Vous n'avez pas encore de produits. Ajoutez votre premier produit !
+                    </p>
+                {% else %}
+                    {% for produit in produits %}
+                        <div class="h-120 produit-card" data-id="{{ produit.id }}">
+                            <div class="relative md:h-95 md:w-65 h-65 w-45 rounded-2xl shadow-xl overflow-hidden">
+                                {% if produit.image %}
+                                    <img src="{{ asset('uploads/produits/' ~ produit.image) }}"
+                                         alt="{{ produit.nom }}"
+                                         class="object-cover w-full h-full rounded-2xl"/>
+                                {% else %}
+                                    <img src="{{ asset('images/prodvend2.png') }}"
+                                         alt="{{ produit.nom }}"
+                                         class="object-cover w-full h-full rounded-2xl"/>
+                                {% endif %}
+                                <div style="position:absolute; top:8px; right:8px; display:flex; gap:4px;">
+                                    <button onclick="openModif({{ produit.id }}, '{{ produit.nom|e('js') }}', {{ produit.prix }}, '{{ produit.description|e('js') }}')"
+                                            class="bg-white/80 hover:bg-white text-[#4c3e14] rounded-full px-3 py-1 text-xs font-bold shadow">✏️</button>
+                                    <button onclick="supprimerProduit({{ produit.id }})"
+                                            class="bg-white/80 hover:bg-red-100 text-red-600 rounded-full px-3 py-1 text-xs font-bold shadow">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="ml-2 font-serif mt-3 text-[#4c3e14] font-bold">{{ produit.nom }}</div>
+                            {% if produit.categorie %}
+                                <div class="ml-2 text-sm text-[#75502a]">{{ produit.categorie.nom }}</div>
+                            {% endif %}
+                            <div class="ml-2 text-sm font-bold text-[#5c3202]">{{ produit.prix }} TND</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+    {% else %}
+        <div class="flex flex-col items-center justify-center py-32 text-[#75502a]">
+            <p class="text-xl font-serif font-bold">Vous n'avez pas encore de boutique.</p>
+        </div>
+    {% endif %}
+
+    <!-- MODAL AJOUT -->
+    <div id="modal-ajout" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center">
+        <div class="bg-[#f4e5d9] border border-[#ccab89] rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
+            <div class="flex items-center justify-between px-6 py-4 bg-[#c99f85] rounded-t-2xl">
+                <span class="font-serif text-lg text-[#382301]">Ajouter un produit</span>
+                <button onclick="closeModal('modal-ajout')" class="text-2xl text-[#75502a] hover:text-[#382301]">&times;</button>
+            </div>
+            <div class="p-6">
+                <form method="POST" action="{{ path('seller_produit_ajouter') }}" enctype="multipart/form-data">
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Nom du produit</label>
+                            <input type="text" name="produit_form[nom]" required
+                                   class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]">
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Prix (TND)</label>
+                            <input type="number" name="produit_form[prix]" step="0.01" required
+                                   class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]">
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Description</label>
+                            <textarea name="produit_form[description]" rows="3"
+                                      class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Catégorie</label>
+                            <select name="produit_form[categorie]"
+                                    class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Image</label>
+                            <input type="file" name="produit_form[imageFile]" accept="image/*" class="mt-1">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#ccab89]">
+                        <button type="button" onclick="closeModal('modal-ajout')"
+                                class="px-4 py-2 rounded-xl bg-white/50 text-[#75502a] text-sm">Annuler</button>
+                        <button type="submit"
+                                class="px-4 py-2 rounded-xl bg-[#ccab89] text-[#382301] font-bold text-sm hover:bg-[#f3d38d]">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MODIFIER -->
+    <div id="modal-modif" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center">
+        <div class="bg-[#f4e5d9] border border-[#ccab89] rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
+            <div class="flex items-center justify-between px-6 py-4 bg-[#c99f85] rounded-t-2xl">
+                <span class="font-serif text-lg text-[#382301]">Modifier le produit</span>
+                <button onclick="closeModal('modal-modif')" class="text-2xl text-[#75502a] hover:text-[#382301]">&times;</button>
+            </div>
+            <div class="p-6">
+                <form id="form-modif" method="POST" action="" enctype="multipart/form-data">
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Nom du produit</label>
+                            <input type="text" name="produit_form[nom]" id="modif-nom" required
+                                   class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]">
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Prix (TND)</label>
+                            <input type="number" name="produit_form[prix]" id="modif-prix" step="0.01" required
+                                   class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]">
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Description</label>
+                            <textarea name="produit_form[description]" id="modif-desc" rows="3"
+                                      class="w-full mt-1 bg-[#eddcce] border border-[#ccab89] rounded-xl px-3 py-2 text-[#382301]"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase tracking-widest text-[#75502a]">Nouvelle image</label>
+                            <input type="file" name="produit_form[imageFile]" accept="image/*" class="mt-1">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#ccab89]">
+                        <button type="button" onclick="closeModal('modal-modif')"
+                                class="px-4 py-2 rounded-xl bg-white/50 text-[#75502a] text-sm">Annuler</button>
+                        <button type="submit"
+                                class="px-4 py-2 rounded-xl bg-[#ccab89] text-[#382301] font-bold text-sm hover:bg-[#f3d38d]">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function openModif(id, nom, prix, desc) {
+            document.getElementById('modif-nom').value  = nom;
+            document.getElementById('modif-prix').value = prix;
+            document.getElementById('modif-desc').value = desc;
+            document.getElementById('form-modif').action = '/seller/produit/modifier/' + id;
+            openModal('modal-modif');
+        }
+
+        function supprimerProduit(id) {
+            if (!confirm('Supprimer ce produit ?')) return;
+            fetch('/seller/produit/supprimer/' + id, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector('.produit-card[data-id="' + id + '"]').remove();
+                    }
+                });
+        }
+    </script>
+
+{% endblock %}
