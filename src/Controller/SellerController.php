@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Produit;
 use App\Form\ProduitFormType;
 use App\Repository\BoutiqueRepository;
+use App\Repository\CategorieRepository;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +19,8 @@ class SellerController extends AbstractController
     #[Route('/seller/dashboard', name: 'seller_dashboard')]
     public function dashboard(
         BoutiqueRepository $boutiqueRepo,
-        ProduitRepository $produitRepo
+        ProduitRepository $produitRepo,
+        CategorieRepository $categorieRepo,
     ): Response {
         if (!$this->getUser() || !in_array('ROLE_VENDEUR', $this->getUser()->getRoles())) {
             return $this->redirectToRoute('app_login');
@@ -30,6 +32,7 @@ class SellerController extends AbstractController
         return $this->render('seller/dashboard.html.twig', [
             'boutique' => $boutique,
             'produits' => $produits,
+            'categories'=> $categorieRepo->findAll()
         ]);
     }
 

@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Boutique;
 final class BoutiqueController extends AbstractController
 {
    // main pages (listes et filtrage )
@@ -71,5 +72,73 @@ final class BoutiqueController extends AbstractController
             'boutiques' => $result,
             'count'     => count($result),
         ]);
+    }
+    #[Route('/seller/boutique/enregistrer', name: 'seller_boutique_enregistrer', methods: ['POST'])]
+    public function enregistrerBoutique(
+        Request $request,
+        BoutiqueRepository $boutiqueRepo,
+        CategorieRepository $categorieRepo,
+        \Doctrine\ORM\EntityManagerInterface $em
+    ): Response {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // 1. Vérifier si ce vendeur a déjà une boutique
+        $boutique = $boutiqueRepo->findOneBy(['user' => $user]);
+        $isNew = false;
+
+        if (!$boutique) {
+            // Mode CRÉATION
+            $boutique = new Boutique();
+            $boutique->setUserId($user); // Nom exact de la méthode dans votre Boutique.php
+            $boutique->setCreatedAt(new \DateTime());
+            $boutique->setStatut('actif');
+            $isNew = true;
+        } else {
+            // Mode MODIFICATION
+            $boutique->setUpdatedAt(new \DateTime());
+        }
+
+        // Récupération des données brutes du formulaire HTML natif
+        $data = $request->request->all('boutique_form');
+        $boutique->setNom($data['nom'] ?? '');
+        $boutique->setDescription($data['description'] ?? '');
+
+        // Gestion de la catégorie
+        if (!empty($data['categorie'])) {
+            $categorie = $categorieRepo->find($data['categorie']);
+            if ($categorie) {
+                $boutique->setCategorie($categorie);
+            }
+        }
+
+        //  Gestion des uploads (Logo et Couverture)
+        $files = $request->files->all('boutique_form');
+
+        if (!empty($files['photo'])) {
+            $photoFile = $files['photo'];
+            $newFilename = uniqid().'.'.$photoFile->guessExtension();
+            $photoFile->move($this->getParameter('kernel.project_dir').'/public/uploads/boutiques', $newFilename);
+            $boutique->setPhoto('uploads/boutiques/'.$newFilename);
+        }
+
+        if (!empty($files['photo_couverture'])) {
+            $couvertureFile = $files['photo_couverture'];
+            $newFilename = uniqid().'.'.$couvertureFile->guessExtension();
+            $couvertureFile->move($this->getParameter('kernel.project_dir').'/public/uploads/boutiques', $newFilename);
+            $boutique->setPhotoCouverture('uploads/boutiques/'.$newFilename);
+        }
+
+        //  Sauvegarder
+        if ($isNew) {
+            $em->persist($boutique);
+        }
+        $em->flush();
+
+
+
+        return $this->redirectToRoute('seller_dashboard');
     }
 }

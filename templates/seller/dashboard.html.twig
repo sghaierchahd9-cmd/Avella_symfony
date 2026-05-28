@@ -4,7 +4,6 @@
 
 {% block body %}
 
-    <!-- NAVBAR -->
     <header class="sticky top-0 isolate z-50 border-b border-black/10 bg-[#c99f85]/95 backdrop-blur-md">
         <div class="mx-auto flex w-full max-w-[1400px] items-center gap-2 px-3 py-3 sm:px-4">
             <div class="flex shrink-0 items-center gap-3">
@@ -23,13 +22,167 @@
         </div>
     </header>
 
+    {# Notification de succès système si présente #}
+    {% for message in app.flashes('success') %}
+        <div class="mx-auto max-w-4xl px-6 mt-6">
+            <div class="p-4 bg-stone-50 border border-stone-200 text-stone-800 rounded-xl text-center text-sm font-medium">
+                ✨ {{ message }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="mx-auto max-w-4xl px-6 mt-10">
+        {% if boutique %}
+
+            <div class="w-full bg-stone-50 rounded-3xl border border-gray-100 overflow-hidden mb-10 shadow-sm">
+                <div class="w-full h-44 md:h-52 bg-stone-200 relative">
+                    {% if boutique.photoCouverture %}
+                        <img src="{{ asset(boutique.photoCouverture) }}" alt="Couverture" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full bg-gradient-to-r from-[#ccab89]/40 to-[#c99f85]/30"></div>
+                    {% endif %}
+
+                    <div class="absolute -bottom-8 left-8 w-24 h-24 rounded-full border-4 border-white bg-white shadow-md overflow-hidden flex items-center justify-center">
+                        {% if boutique.photo %}
+                            <img src="{{ asset(boutique.photo) }}" alt="Logo" class="w-full h-full object-cover">
+                        {% else %}
+                            <span class="font-serif text-2xl font-bold text-[#755440]">{{ boutique.nom|slice(0,1)|upper }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="pt-14 pb-6 px-8">
+                    <div class="flex items-start justify-between flex-wrap gap-2">
+                        <div>
+                            <h1 class="text-2xl font-serif font-bold text-gray-900">{{ boutique.nom }}</h1>
+                            <p class="text-sm text-gray-500 mt-1 max-w-2xl italic">{{ boutique.description ?: 'Aucune description définie pour le moment.' }}</p>
+                        </div>
+                        {% if boutique.categorie %}
+                            <span class="text-[11px] font-bold uppercase tracking-wider bg-stone-200/70 text-stone-700 px-3 py-1 rounded-full">
+                                📂 {{ boutique.categorie.nom }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm mb-12">
+                <div class="mb-6">
+                    <h2 class="text-lg font-serif font-bold text-gray-900">Paramètres de la vitrine</h2>
+                    <p class="text-xs text-gray-400">Modifiez l'identité visuelle et les informations de votre marque</p>
+                </div>
+
+                <form method="POST" action="{{ path('seller_boutique_enregistrer') }}" enctype="multipart/form-data" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Nom commercial</label>
+                            <input type="text" name="boutique_form[nom]" value="{{ boutique.nom }}" required
+                                   class="w-full bg-stone-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#c99f85] transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Secteur / Catégorie</label>
+                            <select name="boutique_form[categorie]" required
+                                    class="w-full bg-stone-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#c99f85] transition">
+                                {% if categories is defined %}
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}" {% if boutique.categorie and boutique.categorie.id == cat.id %}selected{% endif %}>
+                                            {{ cat.nom }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="">Conserver la catégorie actuelle</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">À propos de la marque</label>
+                        <textarea name="boutique_form[description]" rows="3" required
+                                  class="w-full bg-stone-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#c99f85] transition">{{ boutique.description }}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+                        <div class="p-4 bg-stone-50/40 rounded-2xl border border-dashed border-gray-200">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Actualiser le Logo</label>
+                            <input type="file" name="boutique_form[photo]" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white file:text-gray-700 file:shadow-sm hover:file:bg-gray-50 cursor-pointer">
+                        </div>
+                        <div class="p-4 bg-stone-50/40 rounded-2xl border border-dashed border-gray-200">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Actualiser la Couverture</label>
+                            <input type="file" name="boutique_form[photo_couverture]" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white file:text-gray-700 file:shadow-sm hover:file:bg-gray-50 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="px-6 py-2.5 bg-[#755440] hover:bg-[#4f3222] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm transition">
+                            Mettre à jour la boutique
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        {% else %}
+
+            <div class="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-xl mb-12">
+                <div class="text-center mb-8">
+                    <h2 class="font-serif text-2xl font-bold text-[#382301]">Ouvrir votre espace créateur</h2>
+                    <p class="text-xs text-gray-400 mt-1">Remplissez les informations ci-dessous pour ouvrir votre espace de vente sur Avella.</p>
+                </div>
+
+                <form method="POST" action="{{ path('seller_boutique_enregistrer') }}" enctype="multipart/form-data" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-widest text-[#75502a] mb-1">Nom de la boutique *</label>
+                        <input type="text" name="boutique_form[nom]" required placeholder="Ex : SHA Boutique"
+                               class="w-full bg-stone-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#c99f85] transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-widest text-[#75502a] mb-1">Description *</label>
+                        <textarea name="boutique_form[description]" rows="4" required placeholder="Décrivez votre univers créatif..."
+                                  class="w-full bg-stone-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#c99f85] transition"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-widest text-[#75502a] mb-1">Catégorie de la boutique *</label>
+                        <select name="boutique_form[categorie]" required
+                                class="w-full bg-stone-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#c99f85] transition">
+                            <option value="">Choisir une catégorie</option>
+                            {% if categories is defined %}
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}">{{ cat.nom }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+                        <div class="p-4 bg-stone-50/40 rounded-2xl border border-dashed border-gray-200">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Photo de profil (Logo)</label>
+                            <input type="file" name="boutique_form[photo]" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white file:text-gray-700 file:shadow-sm hover:file:bg-gray-50 cursor-pointer">
+                        </div>
+                        <div class="p-4 bg-stone-50/40 rounded-2xl border border-dashed border-gray-200">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Photo de couverture</label>
+                            <input type="file" name="boutique_form[photo_couverture]" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white file:text-gray-700 file:shadow-sm hover:file:bg-gray-50 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full py-3 bg-[#755440] hover:bg-[#4f3222] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition">
+                            Créer ma boutique →
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+
     {% if boutique %}
         <div class="mx-auto max-w-[1400px] px-6 mt-10">
 
-            <!-- HEADER SECTION -->
             <div class="flex items-center justify-between mb-8">
                 <div>
-                    <h1 class="font-serif text-3xl text-[#5c3202]">{{ boutique.nom }}</h1>
+                    <h1 class="font-serif text-3xl text-[#5c3202]">Vos créations en vitrine</h1>
                     <p class="text-sm text-[#75502a] mt-1">{{ produits|length }} produit(s) dans votre boutique</p>
                 </div>
                 <button onclick="openModal('modal-ajout')"
@@ -39,7 +192,6 @@
                 </button>
             </div>
 
-            <!-- GRILLE PRODUITS -->
             <div class="flex flex-wrap justify-center gap-x-5 gap-y-8">
                 {% if produits is empty %}
                     <p class="text-[#75502a] text-center w-full mt-20 text-lg">
@@ -75,14 +227,8 @@
                 {% endif %}
             </div>
         </div>
-
-    {% else %}
-        <div class="flex flex-col items-center justify-center py-32 text-[#75502a]">
-            <p class="text-xl font-serif font-bold">Vous n'avez pas encore de boutique.</p>
-        </div>
     {% endif %}
 
-    <!-- MODAL AJOUT -->
     <div id="modal-ajout" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center">
         <div class="bg-[#f4e5d9] border border-[#ccab89] rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
             <div class="flex items-center justify-between px-6 py-4 bg-[#c99f85] rounded-t-2xl">
@@ -91,6 +237,8 @@
             </div>
             <div class="p-6">
                 <form method="POST" action="{{ path('seller_produit_ajouter') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="produit_form[_token]" value="{{ csrf_token('produit_form') }}">
+
                     <div class="flex flex-col gap-4">
                         <div>
                             <label class="text-xs uppercase tracking-widest text-[#75502a]">Nom du produit</label>
@@ -129,7 +277,6 @@
         </div>
     </div>
 
-    <!-- MODAL MODIFIER -->
     <div id="modal-modif" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center">
         <div class="bg-[#f4e5d9] border border-[#ccab89] rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
             <div class="flex items-center justify-between px-6 py-4 bg-[#c99f85] rounded-t-2xl">
