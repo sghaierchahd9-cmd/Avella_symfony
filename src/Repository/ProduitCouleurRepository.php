@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\ProduitCouleur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Produit;
 
 class ProduitCouleurRepository extends ServiceEntityRepository
 {
