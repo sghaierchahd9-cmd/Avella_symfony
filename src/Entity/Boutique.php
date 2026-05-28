@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\BoutiqueRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BoutiqueRepository::class)]
@@ -40,6 +42,13 @@ class Boutique
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Categorie $categorie = null;
+    #[ORM\OneToMany(mappedBy: 'boutique', targetEntity: Produit::class)]
+    private Collection $produits;
+
+    public function __construct()
+    {
+        $this->produits = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -149,12 +158,12 @@ class Boutique
         return $this;
     }
 
-    public function getCategorieId(): ?Categorie
+    public function getCategorie(): ?Categorie
     {
         return $this->categorie;
     }
 
-    public function setCategorieId(Categorie $categorie_id): static
+    public function setCategorie(Categorie $categorie_id): static
     {
         $this->categorie = $categorie_id;
 

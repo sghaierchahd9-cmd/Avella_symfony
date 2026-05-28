@@ -1,0 +1,256 @@
+{# templates/boutique/listeBoutiques.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Avella — Boutiques{% endblock %}
+
+{% block body %}
+    <body class="overflow-y-scroll overflow-x-hidden scroll-smooth bg-[#f4e5d9] min-h-300">
+
+
+
+    {# ── TITRE ───────────────────────────────────────────────── #}
+    <h1 class="font-serif text-4xl md:text-5xl text-center mb-16 text-[#603f2a]">
+        Découvrez nos boutiques
+    </h1>
+
+    {# ── CATÉGORIES (pills) ──────────────────────────────────── #}
+    <section class="px-6 mb-16">
+        <h2 class="ml-4 font-serif text-2xl mb-8 text-[#6b5447]">Nos catégories</h2>
+        <div class="flex gap-12 justify-center flex-wrap" id="categories-container">
+
+            {% for cat in categories %}
+                <button class="flex flex-col items-center group cursor-pointer cat-item"
+                        data-cat-id="{{ cat.id }}">
+
+                    <div class="w-28 h-28 rounded-full border-4 border-orange-200 bg-white
+                        flex items-center justify-center mb-2
+                        group-hover:bg-orange-50 transition-colors overflow-hidden cat-circle">
+                        {% if cat.photo %}
+                            <img src="{{ asset(cat.photo) }}"
+                                 alt="{{ cat.nom }}"
+                                 class="w-12 h-12 object-cover">
+                        {% else %}
+                            <span class="text-2xl">🏷️</span>
+                        {% endif %}
+                    </div>
+
+                    <span class="text-[#6b5447] font-medium text-sm text-center">
+                {{ cat.nom }}
+            </span>
+                </button>
+            {% endfor %}
+
+        </div>
+    </section>
+
+    {# ── BARRE DE RECHERCHE ──────────────────────────────────── #}
+    <section class="flex justify-center mb-16 px-6">
+        <div class="w-full max-w-md">
+            <div class="flex items-center bg-white border-3 border-orange-200 rounded-full px-4 py-3 shadow-sm">
+                <svg class="w-5 h-5 text-stone-600 mr-3 shrink-0" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z"/>
+                </svg>
+                <input type="text" id="search-input" placeholder="Recherchez une boutique par nom..."
+                       autocomplete="off"
+                       class="w-full bg-transparent outline-none text-[#6b5447] placeholder-stone-600"/>
+            </div>
+        </div>
+    </section>
+
+    {# ── LISTE DES BOUTIQUES (injectée par JS) ───────────────── #}
+    <section class="px-6 pb-20">
+        <h2 id="section-title" class="ml-4 font-serif text-2xl mb-6 text-[#6b5447]">
+            Toutes nos boutiques
+        </h2>
+        <div id="boutiques-list" class="flex flex-wrap ml-4 gap-8"></div>
+        <div id="empty-state" class="hidden text-center py-20">
+            <p class="text-[#8B674F] text-lg">Aucune boutique trouvée.</p>
+            <button id="reset-btn" class="inline-block mt-4 text-sm text-[#6b5447] hover:underline cursor-pointer">
+                Voir toutes les boutiques →
+            </button>
+        </div>
+    </section>
+
+
+
+    {# ── JAVASCRIPT ──────────────────────────────────────────── #}
+    {#
+    CHANGEMENT CLÉ par rapport au PHP natif :
+    L'URL du fetch ne pointe plus vers search_boutiques.php
+    mais vers la route Symfony générée par path()
+    On passe l'URL via un data-attribute pour éviter de mélanger Twig et JS
+    #}
+    <div id="js-config"
+         data-search-url="{{ path('app_boutique_search') }}"
+         style="display:none"></div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            // ── récupérer l'URL générée par Symfony ──────────────────
+            const SEARCH_URL = document.getElementById('js-config').dataset.searchUrl;
+
+            const searchInput   = document.getElementById('search-input');
+            const boutiquesList = document.getElementById('boutiques-list');
+            const emptyState    = document.getElementById('empty-state');
+            const sectionTitle  = document.getElementById('section-title');
+            const resetBtn      = document.getElementById('reset-btn');
+            const catItems      = document.querySelectorAll('.cat-item');
+
+            let currentCatId  = 0;
+            let currentSearch = '';
+            let debounceTimer = null;
+            const DEBOUNCE_MS = 300;
+
+            // ── construction de la card ───────────────────────────────
+            function buildCard(b) {
+                const photoHtml = b.photo
+                    ? `<img src="${esc(b.photo)}" alt="${esc(b.nom)}" class="object-cover h-full w-full rounded-full">`
+                    : `<span class="text-3xl">🏪</span>`;
+
+                let desc = b.description || '';
+                const dots = desc.length > 100 ? '...' : '';
+                desc = esc(desc.substring(0, 100)) + dots;
+
+                const catBadge = b.categorie_nom
+                    ? `<span class="block text-center text-[#C99F85] text-xs mb-3">${esc(b.categorie_nom)}</span>`
+                    : '';
+
+                // NOTE : l'URL du profil boutique sera à adapter quand tu créeras BoutiqueController::profil()
+                return `
+        <div class="items-center bg-white h-100 w-70 justify-center rounded-2xl shadow-md p-6">
+            <div class="w-28 h-28 rounded-full border-3 border-orange-200 flex items-center
+                        justify-center mb-3 bg-white mx-auto overflow-hidden">
+                ${photoHtml}
+            </div>
+            <span class="block text-center text-[#6b5447] font-medium text-xl mb-1">
+                ${esc(b.nom)}
+            </span>
+            ${catBadge}
+            <p class="text-[#99877c] font-medium text-sm text-center">${desc}</p>
+            <a href="/boutique/${parseInt(b.id)}"
+               class="block text-center bg-[#6b5447] rounded-full w-40 h-10
+                      leading-10 mx-auto mt-6 text-white text-sm hover:bg-[#5a4438] transition">
+                Découvrir
+            </a>
+        </div>`;
+            }
+
+            function esc(str) {
+                const d = document.createElement('div');
+                d.textContent = String(str);
+                return d.innerHTML;
+            }
+
+            function renderBoutiques(boutiques) {
+                boutiquesList.innerHTML = '';
+                emptyState.classList.add('hidden');
+
+                if (boutiques.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    sectionTitle.textContent = 'Aucun résultat';
+                    return;
+                }
+
+                boutiques.forEach(b => boutiquesList.insertAdjacentHTML('beforeend', buildCard(b)));
+
+                if (currentSearch !== '' && currentCatId > 0) {
+                    sectionTitle.textContent = 'Résultats filtrés';
+                } else if (currentSearch !== '') {
+                    sectionTitle.textContent = `Résultats pour "${currentSearch}"`;
+                } else if (currentCatId > 0) {
+                    sectionTitle.textContent = 'Boutiques dans cette catégorie';
+                } else {
+                    sectionTitle.textContent = 'Toutes nos boutiques';
+                }
+            }
+
+            // ── appel AJAX ────────────────────────────────────────────
+            function fetchBoutiques() {
+                const params = new URLSearchParams({
+                    search:       currentSearch,
+                    categorie_id: currentCatId,
+                });
+
+                fetch(`${SEARCH_URL}?${params.toString()}`)
+                    .then(res => res.json())
+                    .then(data => { if (data.success) renderBoutiques(data.boutiques); })
+                    .catch(err => console.error('Fetch échoué:', err));
+            }
+
+            // ── live search ───────────────────────────────────────────
+            searchInput.addEventListener('input', function () {
+                currentSearch = this.value.trim();
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchBoutiques, DEBOUNCE_MS);
+            });
+
+            // ── filtre catégorie ──────────────────────────────────────
+            catItems.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const catId = parseInt(this.dataset.catId);
+                    if (currentCatId === catId) {
+                        currentCatId = 0;
+                        resetCatStyles();
+                    } else {
+                        currentCatId = catId;
+                        setCatActive(this);
+                    }
+                    fetchBoutiques();
+                });
+            });
+
+            function setCatActive(activeBtn) {
+                catItems.forEach(btn => {
+                    const circle = btn.querySelector('.cat-circle');
+                    circle.classList.remove('border-[#6b5447]', 'bg-orange-50');
+                    circle.classList.add('border-orange-200', 'bg-white');
+                });
+                const circle = activeBtn.querySelector('.cat-circle');
+                circle.classList.remove('border-orange-200', 'bg-white');
+                circle.classList.add('border-[#6b5447]', 'bg-orange-50');
+            }
+
+            function resetCatStyles() {
+                catItems.forEach(btn => {
+                    const circle = btn.querySelector('.cat-circle');
+                    circle.classList.remove('border-[#6b5447]', 'bg-orange-50');
+                    circle.classList.add('border-orange-200', 'bg-white');
+                });
+            }
+
+            resetBtn.addEventListener('click', function () {
+                currentCatId = 0;
+                currentSearch = '';
+                searchInput.value = '';
+                resetCatStyles();
+                fetchBoutiques();
+            });
+
+            // ── auto-select depuis l'URL (?categorie=Vêtements) ───────
+            const urlParams      = new URLSearchParams(window.location.search);
+            const categorieNom   = urlParams.get('categorie');
+            if (categorieNom) {
+                catItems.forEach(btn => {
+                    const label = btn.querySelector('span');
+                    if (label && label.textContent.trim().toLowerCase() === categorieNom.toLowerCase()) {
+                        currentCatId = parseInt(btn.dataset.catId);
+                        setCatActive(btn);
+                    }
+                });
+            }
+
+            // ── chargement initial ────────────────────────────────────
+            fetchBoutiques();
+
+        })();
+    </script>
+
+    <script src="{{ asset('js/script.js') }}" defer></script>
+
+    </body>
+{% endblock %}
