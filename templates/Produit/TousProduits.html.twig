@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Avella — Tous les produits{% endblock %}
+
+{% block body %}
+
+    <!-- NAVBAR -->
+    <header class="sticky top-0 isolate z-50 border-b border-black/10 bg-[#c99f85]/95 backdrop-blur-md">
+        <div class="mx-auto flex w-full max-w-[1400px] items-center gap-2 px-3 py-3 sm:px-4">
+            <div class="flex shrink-0 items-center gap-3">
+                <span class="font-serif text-2xl text-[#4f3222]">Avella</span>
+                <nav class="hidden items-center gap-1 md:flex">
+                    <a href="/" class="rounded-full px-4 py-2 text-sm font-medium text-[#4f3222] hover:bg-white/30">Home</a>
+                    <a href="{{ path('produit_index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-[#4f3222] hover:bg-white/30">Explorer</a>
+                </nav>
+            </div>
+            <div class="ml-auto flex items-center gap-2">
+                {% if app.user %}
+                    <a href="{{ path('app_logout') }}" class="rounded-full bg-[#755440] px-4 py-2 text-sm text-white hover:bg-[#4f3222]">Déconnexion</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="rounded-full bg-[#755440] px-4 py-2 text-sm text-white hover:bg-[#4f3222]">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- FILTRES -->
+    <div class="bg-[#eddcce] border-b border-[#ccab89] sticky top-[60px] z-40">
+        <div class="mx-auto max-w-[1400px] px-6 py-4">
+            <form method="GET" action="{{ path('produit_index') }}" class="flex flex-wrap gap-3 items-end">
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs uppercase tracking-widest text-[#75502a] font-semibold">Nom</label>
+                    <input type="text" name="nom" value="{{ nom }}" placeholder="Ex: robe, sac..."
+                           class="bg-[#f4e5d9] border border-[#ccab89] rounded-xl px-3 py-2 text-sm text-[#382301] focus:outline-none focus:ring-2 focus:ring-[#c99f85] w-44"/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs uppercase tracking-widest text-[#75502a] font-semibold">Catégorie</label>
+                    <input type="text" name="categorie" value="{{ categorie }}" placeholder="Ex: vêtements..."
+                           class="bg-[#f4e5d9] border border-[#ccab89] rounded-xl px-3 py-2 text-sm text-[#382301] focus:outline-none focus:ring-2 focus:ring-[#c99f85] w-44"/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs uppercase tracking-widest text-[#75502a] font-semibold">Boutique</label>
+                    <input type="text" name="boutique" value="{{ boutique }}" placeholder="Ex: Avella Store..."
+                           class="bg-[#f4e5d9] border border-[#ccab89] rounded-xl px-3 py-2 text-sm text-[#382301] focus:outline-none focus:ring-2 focus:ring-[#c99f85] w-44"/>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="bg-[#ccab89] hover:bg-[#f3d38d] text-[#382301] font-bold font-serif rounded-2xl px-5 py-2 text-sm transition border-2 border-transparent hover:border-[#382301]">
+                        🔍 Rechercher
+                    </button>
+                    {% if nom or categorie or boutique %}
+                        <a href="{{ path('produit_index') }}"
+                           class="bg-white/50 hover:bg-white/80 text-[#75502a] font-semibold rounded-2xl px-4 py-2 text-sm transition">
+                            ✕ Réinitialiser
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONTENU -->
+    <div class="mx-auto max-w-[1400px] px-6 mt-8 pb-16">
+
+        <div class="mb-6">
+            <h1 class="font-serif text-3xl text-[#5c3202]">Tous les produits</h1>
+            <p class="text-sm text-[#75502a] mt-1">
+                {{ produits|length }} produit(s) trouvé(s)
+                {% if nom or categorie or boutique %}
+                    —
+                    {% if nom %} nom : <strong>"{{ nom }}"</strong>{% endif %}
+                    {% if categorie %} · catégorie : <strong>{{ categorie }}</strong>{% endif %}
+                    {% if boutique %} · boutique : <strong>{{ boutique }}</strong>{% endif %}
+                {% endif %}
+            </p>
+        </div>
+
+        {% if produits is empty %}
+            <div class="flex flex-col items-center justify-center py-32 text-[#75502a]">
+                <span class="text-6xl mb-4">🛍️</span>
+                <p class="text-xl font-serif font-bold">Aucun produit trouvé</p>
+                <p class="text-sm mt-1">
+                    Essaie d'autres mots-clés ou
+                    <a href="{{ path('produit_index') }}" class="underline hover:text-[#382301]">voir tous les produits</a>
+                </p>
+            </div>
+        {% else %}
+            <div class="flex flex-wrap justify-center gap-x-5 gap-y-8">
+                {% for produit in produits %}
+                    <div class="h-120">
+                        <div class="relative md:h-95 md:w-65 h-65 w-45 rounded-2xl shadow-xl overflow-hidden">
+                            {% if produit.image %}
+                                <img src="{{ asset('uploads/produits/' ~ produit.image) }}"
+                                     alt="{{ produit.nom }}"
+                                     class="object-cover w-full h-full rounded-2xl hover:scale-105 transition duration-300"/>
+                            {% else %}
+                                <img src="{{ asset('images/prodvend2.png') }}"
+                                     alt="{{ produit.nom }}"
+                                     class="object-cover w-full h-full rounded-2xl hover:scale-105 transition duration-300"/>
+                            {% endif %}
+                        </div>
+                        <div class="ml-2 mt-3">
+                            {% if produit.boutique %}
+                                <p class="text-xs text-[#c99f85] font-semibold">{{ produit.boutique.nom }}</p>
+                            {% endif %}
+                            <p class="font-serif font-bold text-[#4c3e14] truncate w-44">{{ produit.nom }}</p>
+                            {% if produit.categorie %}
+                                <p class="text-xs text-[#75502a]">{{ produit.categorie.nom }}</p>
+                            {% endif %}
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-sm font-bold text-[#5c3202]">{{ produit.prix }} TND</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
