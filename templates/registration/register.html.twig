@@ -1,0 +1,91 @@
+{# templates/registration/register.html.twig #}
+{% extends 'base.html.twig' %}
+{% block title %}Créer un compte{% endblock %}
+
+{% block body %}
+<body class="bg-[#C99F85]">
+<div class="min-h-screen flex justify-center items-center bg-[#C99F85]">
+  <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-8 flex flex-col gap-4">
+
+    <h1 class="text-center text-4xl text-[#5c3202] font-light font-serif mb-2">
+      Créer un compte
+    </h1>
+
+    {# Erreurs globales #}
+    {% for flash_error in app.flashes('verify_email_error') %}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{{ flash_error }}</div>
+    {% endfor %}
+    {{ form_errors(registrationForm) }}
+
+    {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
+
+      {# Nom #}
+      <div>
+        <label class="block text-xl text-[#5c3202] font-serif font-light mb-1">Nom</label>
+        {{ form_widget(registrationForm.nom, {'attr': {
+          'class': 'w-full p-2 border border-gray-300 rounded font-serif text-[#5c3202] focus:outline-none focus:ring-2 focus:ring-[#C99F85]'
+        }}) }}
+        {{ form_errors(registrationForm.nom) }}
+      </div>
+
+      {# Prénom #}
+      <div>
+        <label class="block text-xl text-[#5c3202] font-serif font-light mb-1">Prénom</label>
+        {{ form_widget(registrationForm.prenom, {'attr': {
+          'class': 'w-full p-2 border border-gray-300 rounded font-serif text-[#5c3202] focus:outline-none focus:ring-2 focus:ring-[#C99F85]'
+        }}) }}
+        {{ form_errors(registrationForm.prenom) }}
+      </div>
+
+      {# Rôle #}
+      <div>
+        <label class="block text-xl text-[#5c3202] font-serif font-light mb-2">Tu es un ?</label>
+        <div class="flex gap-8">
+          {{ form_widget(registrationForm.roles) }}
+        </div>
+        {{ form_errors(registrationForm.roles) }}
+      </div>
+
+      {# Téléphone #}
+      <div>
+        <label class="block text-xl text-[#5c3202] font-serif font-light mb-1">Numéro de téléphone</label>
+        {{ form_widget(registrationForm.telephone, {'attr': {
+          'class': 'w-full p-2 border border-gray-300 rounded font-serif text-[#5c3202] focus:outline-none focus:ring-2 focus:ring-[#C99F85]'
+        }}) }}
+        {{ form_errors(registrationForm.telephone) }}
+      </div>
+
+      {# Email #}
+      <div>
+        <label class="block text-xl text-[#5c3202] font-serif font-light mb-1">Adresse Email</label>
+        {{ form_widget(registrationForm.email, {'attr': {
+          'class': 'w-full p-2 border border-gray-300 rounded font-serif text-[#5c3202] focus:outline-none focus:ring-2 focus:ring-[#C99F85]'
+        }}) }}
+        {{ form_errors(registrationForm.email) }}
+      </div>
+
+      {# Mot de passe #}
+      <div>
+        <label class="block text-xl text-[#5c3202] font-serif font-light mb-1">Mot de passe</label>
+        {{ form_widget(registrationForm.plainPassword, {'attr': {
+          'class': 'w-full p-2 border border-gray-300 rounded font-serif text-[#5c3202] focus:outline-none focus:ring-2 focus:ring-[#C99F85]'
+        }}) }}
+        {{ form_errors(registrationForm.plainPassword) }}
+      </div>
+
+      <button type="submit"
+        class="w-full bg-[#C99F85] text-white py-2 rounded font-serif text-xl font-light hover:bg-[#b08870] transition-colors">
+        S'inscrire
+      </button>
+
+    {{ form_end(registrationForm) }}
+
+    <p class="text-base text-center text-[#5c3202] font-serif font-light">
+      Déjà un compte ?
+      <a href="{{ path('app_login') }}" class="text-[#C99F85] hover:underline">Se connecter</a>
+    </p>
+
+  </div>
+</div>
+</body>
+{% endblock %}

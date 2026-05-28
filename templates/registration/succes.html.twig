@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Succès de création de compte{% endblock %}
+
+{% block body %}
+<body class="bg-[#C99F85]">
+<div class="min-h-screen flex justify-center items-center bg-[#C99F85]">
+  <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-8 flex flex-col gap-4">
+
+    <h1 class="text-center md:text-4xl sm:text-3xl text-2xl text-[#5c3202] font-light font-serif">
+      Succès de la création de votre compte
+    </h1>
+    <a href="#" {# remplacer par path('app_buyer_dashboard') quand la route existe #}
+  class="block text-center text-xl text-[#C99F85] font-serif font-light hover:underline mt-4">
+  Commencer à utiliser votre compte et profiter de nos services !
+</a>
+
+
+  </div>
+</div>
+</body>
+{% endblock %}
