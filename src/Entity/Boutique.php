@@ -160,4 +160,9 @@ class Boutique
 
         return $this;
     }
+
+    public function getCategorie(): ?Categorie
+    {
+        return $this->categorie;
+    }
 }

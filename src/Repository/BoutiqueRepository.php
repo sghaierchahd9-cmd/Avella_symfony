@@ -40,4 +40,44 @@ class BoutiqueRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    public function findAllActive(): array
+    {
+        return $this->createQueryBuilder('b')
+            ->leftJoin('b.categorie', 'c')
+            ->addSelect('c')
+            ->where("b.statut = 'actif'")
+            ->orderBy('b.created_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function findByCategorie(int $categorieId): array
+    {
+        return $this->createQueryBuilder('b')
+            ->leftJoin('b.categorie', 'c')
+            ->addSelect('c')
+            ->where('b.categorie = :categorieId')
+            ->andWhere("b.statut = 'actif'")
+            ->setParameter('categorieId', $categorieId)
+            ->orderBy('b.created_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByName(string $search): array
+    {
+        return $this->createQueryBuilder('b')
+            ->leftJoin('b.categorie', 'c')
+            ->addSelect('c')
+            ->where('b.nom LIKE :search')
+            ->andWhere("b.statut = 'actif'")
+            ->setParameter('search', '%' . $search . '%')
+            ->orderBy('b.created_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function findOneBy(array $criteria, array $orderBy = null): ?Boutique
+    {
+        return parent::findOneBy($criteria, $orderBy);
+    }
+
 }

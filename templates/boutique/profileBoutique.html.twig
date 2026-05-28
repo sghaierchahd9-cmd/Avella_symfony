@@ -1,0 +1,265 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}boutique_profile{% endblock %}
+{% block body %}
+
+{# ── NAVBAR ── #}
+    <header class="sticky top-0 isolate z-50 border-b border-black/10 bg-[#c99f85]/95 backdrop-blur-md">
+        <div class="mx-auto flex w-full max-w-[1400px] items-center gap-2 px-3 py-3 sm:px-4">
+            <div class="flex shrink-0 items-center gap-3">
+                <span class="font-serif text-2xl text-[#4f3222]">Avella</span>
+                <nav class="hidden items-center gap-1 md:flex">
+                    <a href="/" class="rounded-full px-4 py-2 text-sm font-medium text-[#4f3222] hover:bg-white/30">Home</a>
+                    <a href="{{ path('produit_index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-[#4f3222] hover:bg-white/30">Explorer</a>
+                </nav>
+            </div>
+            <div class="ml-auto flex items-center gap-2">
+                {% if app.user %}
+                    <span class="text-sm text-[#4f3222]">{{ app.user.nom }}</span>
+                    <a href="{{ path('app_logout') }}" class="rounded-full bg-[#755440] px-4 py-2 text-sm text-white hover:bg-[#4f3222]">Déconnexion</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {# BOUTIQUE  #}
+<div class="boutique-hero">
+    <div class="w-full h-32 max-h-[320px] bg-[#c99f85]/40 overflow-hidden relative rounded-b-3xl">
+        {% if boutique.photoCouverture %}
+            <img src="{{ asset(boutique.photoCouverture) }}"
+                 alt="Couverture {{ boutique.nom }}"
+                 class="w-full h-full object-contain">
+        {% else %}
+            <div class="w-full h-full bg-gradient-to-br from-[#c99f85] via-[#b08870] to-[#8B674F] flex items-center justify-center">
+                <span class="font-serif text-7xl md:text-9xl font-bold text-white/20 select-none">
+                    {{ boutique.nom|upper|slice(0, 1) }}
+                </span>
+            </div>
+        {% endif %}
+        <div class="absolute top-4 left-4 flex items-center gap-2 text-xs text-white/80 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+            <a href="{{ path('app_boutique') }}" class="hover:text-white transition">← Boutiques</a>
+            <span>/</span>
+            <span>{{ boutique.nom }}</span>
+        </div>
+    </div>
+    <div class="relative -mt-14 ml-6 md:ml-14 flex items-end gap-6">
+        <div class="w-28 h-28 rounded-full border-4 border-white shadow-xl bg-[#f4e5d9] overflow-hidden flex items-center justify-center flex-shrink-0">
+            {% if boutique.photo %}
+                <img src="{{ asset(boutique.photo) }}"
+                     alt="Logo {{ boutique.nom }}"
+                     class="w-full h-full object-cover">
+            {% else %}
+                <span class="font-serif text-4xl font-bold text-[#6b5447]">
+                    {{ boutique.nom|upper|slice(0, 1) }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# ── BOUTIQUE INFO ── #}
+<div class="mx-auto max-w-[1400px] px-6 mt-4 mb-10 flex flex-wrap items-start justify-between gap-6">
+    <div class="max-w-lg">
+        <h1 class="font-serif text-3xl md:text-4xl font-semibold text-[#603f2a]">
+            {{ boutique.nom }}
+        </h1>
+        {% if boutique.description %}
+            <p class="mt-3 text-[#6b5447] text-base leading-relaxed">
+                {{ boutique.description|nl2br }}
+            </p>
+        {% endif %}
+    </div>
+    <div class="flex flex-col gap-4 items-end">
+        <div class="flex gap-10 text-[#544339] text-sm">
+            <div class="text-center">
+                <span class="block text-2xl font-bold text-[#5c3202]">{{ produits|length }}</span>
+                Produits
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── PRODUITS ── #}
+<section class="mx-auto max-w-[1400px] px-6 pb-20">
+    <h2 class="text-[#603f2a] text-2xl font-semibold mb-8 font-serif">Nos créations uniques</h2>
+
+    {% if produits is empty %}
+        <div class="flex flex-col items-center justify-center py-24 text-center">
+            <div class="text-5xl mb-4">🛍️</div>
+            <p class="font-serif text-xl text-[#6b5447]">Aucun produit pour le moment.</p>
+            <p class="text-sm text-[#99877c] mt-2">Cette boutique prépare ses créations, revenez bientôt !</p>
+        </div>
+    {% else %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for produit in produits %}
+                {% set couleurs = couleursProduits[produit.id] ?? [] %}
+                <article class="produit-card bg-white rounded-2xl overflow-hidden shadow-md"
+                         data-id="{{ produit.id }}"
+                         data-nom="{{ produit.nom }}"
+                         data-prix="{{ produit.prix }}"
+                         data-description="{{ produit.description ?? '' }}"
+                         data-image="{{ produit.image ?? '' }}"
+                         data-categorie="{{ produit.boutique.categorieId.nom ?? '' }}"
+                         data-couleurs="{{ couleurs|map(c => {
+                             nom: c.couleur.nom,
+                             code_hex: c.couleur.codeHex,
+                             image: c.image
+                         })|json_encode }}">
+
+                    <div class="relative h-56 bg-[#f4e5d9] overflow-hidden">
+                        {% if produit.image %}
+                            <img src="{{ asset(produit.image) }}"
+                                 alt="{{ produit.nom }}"
+                                 class="w-full h-full object-cover transition duration-400 hover:scale-105">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                        <span class="font-serif text-5xl text-[#c99f85]">
+                            {{ produit.nom|upper|slice(0, 1) }}
+                        </span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-4">
+                        <h3 class="font-serif font-bold text-[#603f2a] text-base truncate">{{ produit.nom }}</h3>
+                        <p class="text-xs text-[#99877c] mt-0.5">{{ produit.boutique.categorieId.nom ?? '' }}</p>
+                        <p class="text-[#6b5447] font-bold mt-1">{{ produit.prix|number_format(2, ',', ' ') }} TND</p>
+
+                        {% if app.user %}
+                            <button class="avella-add-to-cart btn-cart" data-produit-id="{{ produit.id }}">
+                                Ajouter au panier
+                            </button>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="btn-cart block text-center">🔒 Connectez-vous</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>
+
+{# ── MODAL DÉTAIL PRODUIT ── #}
+<div id="productModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-[480px] max-w-[94vw] max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-end p-3 pb-0">
+            <button id="closeModal"
+                    class="text-2xl text-[#6b5447] hover:text-[#5c3202] w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f4e5d9] transition"
+                    aria-label="Fermer">×</button>
+        </div>
+        <img id="modal-img" src="" alt="" class="w-full h-72 object-cover rounded-xl mx-auto px-4">
+        <div class="p-5 pt-3">
+            <h2 id="modal-name" class="font-serif text-2xl font-bold text-[#603f2a]"></h2>
+            <p id="modal-price" class="text-[#6b5447] font-bold text-lg mt-1"></p>
+            <p id="modal-cat"   class="text-xs text-[#99877c] mt-0.5"></p>
+            <p id="modal-desc"  class="text-[#6b5447] text-sm mt-3 leading-relaxed"></p>
+            <div id="modal-colors-section" class="mt-4 hidden">
+                <h3 class="font-medium text-[#603f2a] text-sm mb-2">Couleurs disponibles</h3>
+                <div id="modal-colors" class="flex gap-2 flex-wrap"></div>
+            </div>
+            {% if app.user %}
+                <button id="modal-add-btn" class="avella-add-to-cart btn-cart" data-produit-id="">
+                    Ajouter au panier
+                </button>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn-cart block text-center mt-3">🔒 Connectez-vous</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="toast" aria-live="polite"></div>
+
+
+{# ── SCRIPTS ── #}
+<script src="{{ asset('js/script.js') }}" defer></script>
+{% if app.user %}
+    <script src="{{ asset('js/cart.js') }}" defer></script>
+{% else %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var btn = document.getElementById('cart-open-btn');
+            if (btn) btn.addEventListener('click', function () { window.location.href = '{{ path('app_login') }}'; });
+        });
+    </script>
+{% endif %}
+
+<script>
+    (function () {
+        'use strict';
+
+        var modal        = document.getElementById('productModal');
+        var closeBtn     = document.getElementById('closeModal');
+        var modalImg     = document.getElementById('modal-img');
+        var modalName    = document.getElementById('modal-name');
+        var modalPrice   = document.getElementById('modal-price');
+        var modalCat     = document.getElementById('modal-cat');
+        var modalDesc    = document.getElementById('modal-desc');
+        var modalColors  = document.getElementById('modal-colors');
+        var modalColSect = document.getElementById('modal-colors-section');
+        var modalAddBtn  = document.getElementById('modal-add-btn');
+
+        function ouvrirModal(card) {
+            modalName.textContent  = card.dataset.nom;
+            modalPrice.textContent = parseFloat(card.dataset.prix).toFixed(2) + ' TND';
+            modalCat.textContent   = card.dataset.categorie;
+            modalDesc.textContent  = card.dataset.description || '';
+
+            var image = card.dataset.image;
+            if (image) {
+                modalImg.src = '/' + image;
+                modalImg.style.display = 'block';
+            } else {
+                modalImg.style.display = 'none';
+            }
+
+            var couleurs = JSON.parse(card.dataset.couleurs || '[]');
+            modalColors.innerHTML = '';
+            if (couleurs.length > 0) {
+                modalColSect.classList.remove('hidden');
+                couleurs.forEach(function (c) {
+                    var swatch = document.createElement('span');
+                    swatch.className = 'color-swatch';
+                    swatch.style.background = c.code_hex;
+                    swatch.title = c.nom;
+                    swatch.addEventListener('click', function () {
+                        document.querySelectorAll('#modal-colors .color-swatch').forEach(function (s) { s.classList.remove('active'); });
+                        swatch.classList.add('active');
+                        if (c.image) { modalImg.src = '/' + c.image; modalImg.style.display = 'block'; }
+                    });
+                    modalColors.appendChild(swatch);
+                });
+            } else {
+                modalColSect.classList.add('hidden');
+            }
+
+            if (modalAddBtn) {
+                modalAddBtn.dataset.produitId = card.dataset.id;
+            }
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fermerModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', fermerModal);
+        if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) fermerModal(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) fermerModal();
+        });
+
+        document.querySelectorAll('.produit-card').forEach(function (card) {
+            card.addEventListener('click', function (e) {
+                if (e.target.closest('.avella-add-to-cart')) return;
+                ouvrirModal(card);
+            });
+        });
+    })();
+</script>
+
+{% endblock %}

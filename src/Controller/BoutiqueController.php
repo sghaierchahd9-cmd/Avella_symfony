@@ -5,6 +5,9 @@ namespace App\Controller;
 
 use App\Repository\BoutiqueRepository;
 use App\Repository\CategorieRepository;
+use App\Repository\ProduitCouleurRepository;
+use App\Repository\ProduitRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,12 +18,14 @@ final class BoutiqueController extends AbstractController
 {
    // main pages (listes et filtrage )
     #[Route('/boutiques', name: 'app_boutique')]
-    public function boutiques(CategorieRepository $categorieRepo): Response
+    public function boutiques(CategorieRepository $categorieRepo,BoutiqueRepository $boutiqueRepo): Response
     {
         $categories = $categorieRepo->findAll();
+        $boutiques = $boutiqueRepo->findAllActive();
 
         return $this->render('boutique/listeBoutiques.html.twig', [
             'categories' => $categories,
+            'boutiques' => $boutiques
         ]);
     }
 //rechercher et filtrage
@@ -39,14 +44,17 @@ final class BoutiqueController extends AbstractController
         $search      = trim($request->query->get('search', ''));
         $categorieId = (int) $request->query->get('categorie_id', 0);
 
+
         // ─ même logique que search_boutiques.php ─
-        if ($categorieId > 0 && $search !== '') {
+      if ($categorieId > 0 && $search !== '') {
             $boutiques   = $boutiqueRepo->findByCategorie($categorieId);
             $searchLower = mb_strtolower($search);
             $boutiques   = array_values(array_filter(
                 $boutiques,
                 fn($b) => str_contains(mb_strtolower($b->getNom()), $searchLower)
             ));
+
+
 
         } elseif ($categorieId > 0) {
             $boutiques = $boutiqueRepo->findByCategorie($categorieId);
@@ -55,7 +63,8 @@ final class BoutiqueController extends AbstractController
             $boutiques = $boutiqueRepo->findByName($search);
 
         } else {
-            $boutiques = $boutiqueRepo->findAllActive();
+            $boutiques = $boutiqueRepo->findAll();
+
         }
 
         // ─ sérialisation manuelle
@@ -110,7 +119,7 @@ final class BoutiqueController extends AbstractController
         if (!empty($data['categorie'])) {
             $categorie = $categorieRepo->find($data['categorie']);
             if ($categorie) {
-                $boutique->setCategorie($categorie);
+                $boutique->setCategorieId($categorie);
             }
         }
 
@@ -141,4 +150,39 @@ final class BoutiqueController extends AbstractController
 
         return $this->redirectToRoute('seller_dashboard');
     }
+    //la fonction qui va gerer les profiles
+    #[Route('/boutique/{id}', name: 'app_boutique_profil', requirements: ['id' => '\d+'])]
+    public function profil(
+        int $id,
+        BoutiqueRepository $boutiqueRepo,
+        ProduitRepository $produitRepo,
+        ProduitCouleurRepository $produitCouleurRepo,
+        EntityManagerInterface $em
+    ): Response {
+        $boutique = $boutiqueRepo->find($id);
+       // cas l'id invalide wl boutique mech actif
+        if (!$boutique || $boutique->getStatut() !== 'actif') {
+            return $this->redirectToRoute('app_boutique');
+        }
+        //recuperer les produits
+        $produits = $produitRepo->findBy(['boutique' => $boutique]);
+
+        // Pour chaque produit récupérer ses couleurs
+        $couleursProduits = [];
+        foreach ($produits as $produit) {
+            $couleursProduits[$produit->getId()] = $produitCouleurRepo->findByProduit($produit);
+        }
+
+
+
+
+
+        return $this->render('boutique/profileBoutique.html.twig', [
+            'boutique'         => $boutique,
+            'produits'         => $produits,
+            'couleursProduits' => $couleursProduits,
+
+        ]);
+    }
+
 }
