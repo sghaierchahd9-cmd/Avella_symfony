@@ -14,7 +14,7 @@ class Boutique
     private ?int $id = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    private ?User $user_id = null;
+    private ?User $user = null;
 
     #[ORM\Column(length: 180)]
     private ?string $nom = null;
@@ -39,28 +39,28 @@ class Boutique
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Categorie $categorie_id = null;
+    private ?Categorie $categorie = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId(int $id): static
+   /* public function setId(int $id): static
     {
         $this->id = $id;
 
         return $this;
-    }
+    }*/
 
     public function getUserId(): ?User
     {
-        return $this->user_id;
+        return $this->user;
     }
 
     public function setUserId(?User $user_id): static
     {
-        $this->user_id = $user_id;
+        $this->user = $user_id;
 
         return $this;
     }
@@ -151,12 +151,12 @@ class Boutique
 
     public function getCategorieId(): ?Categorie
     {
-        return $this->categorie_id;
+        return $this->categorie;
     }
 
     public function setCategorieId(Categorie $categorie_id): static
     {
-        $this->categorie_id = $categorie_id;
+        $this->categorie = $categorie_id;
 
         return $this;
     }
