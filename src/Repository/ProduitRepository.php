@@ -37,14 +37,14 @@ class ProduitRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
-    public function findTendances(int $limit = 8): array
+
+    public function findLatestProducts(int $limit = 5): array
     {
         return $this->createQueryBuilder('p')
-            ->leftJoin('p.boutique', 'b')
-            ->addSelect('b')
-            ->leftJoin('p.categorie', 'c')
-            ->addSelect('c')
-            ->where("b.statut = 'actif'")
+            ->join('p.boutique', 'b')
+            ->join('b.categorie', 'c')
+            ->andWhere('b.statut = :statut')
+            ->setParameter('statut', 'actif')
             ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -63,4 +63,13 @@ class ProduitRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+    public function findTendances(int $limit = 8): array
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

@@ -1,0 +1,132 @@
+<header class="sticky top-0 isolate z-50 border-b border-black/10 bg-[#c99f85]/95 backdrop-blur-md">
+
+    <div class="mx-auto flex w-full max-w-[1400px] items-center gap-2 px-3 py-3 sm:px-4">
+
+        <button id="open-sidebar"
+                aria-label="Open sidebar"
+                class="rounded-full p-2 text-[#4f3222] transition hover:bg-[#755440] hover:text-[#fff8f3]">
+
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke-width="1.5"
+                 stroke="currentColor"
+                 class="size-6">
+
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+            </svg>
+
+        </button>
+
+
+        <div class="flex shrink-0 items-center gap-3">
+
+            <img src="{{ asset('images/AHHH.png') }}"
+                 alt="Avella"
+                 class="h-10 sm:h-11">
+
+            <div class="hidden md:flex items-center gap-1">
+
+                <a href="{{ path('buyer_dashboard') }}"
+                   class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">
+                    Home
+                </a>
+
+                <a href="{{ path('produit_index') }}"
+                   class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">
+                    Explore
+                </a>
+
+                <a href="{{ path('app_boutique') }}"
+                   class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">
+                    Boutiques
+                </a>
+
+            </div>
+        </div>
+
+
+        <div class="relative mx-auto hidden max-w-xl flex-1 md:flex">
+
+            <form action="{{ path('produit_index') }}"
+                  method="GET"
+                  class="relative w-full">
+
+                <span class="absolute inset-y-0 left-3 flex items-center text-[#5D4133]">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor"
+                         stroke-width="2">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
+                    </svg>
+                </span>
+
+                <input type="text"
+                       name="nom"
+                       placeholder="Rechercher..."
+                       class="w-full rounded-full border border-[#7f5e49] bg-[#e3d5cc] px-10 py-2 font-light placeholder-[#5D4133] transition focus:border-avella3 focus:outline-none focus:ring-2 focus:ring-avella3">
+
+            </form>
+        </div>
+
+
+        <div class="ml-auto flex items-center gap-2">
+
+            <button id="cart-open-btn"
+                    aria-label="Cart"
+                    class="rounded-full p-1.5 text-xl transition hover:bg-white/30 relative">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="35px"
+                     height="35px"
+                     viewBox="0 0 21 21">
+
+                    <g fill="none" fill-rule="evenodd" transform="translate(2 4)">
+                        <path d="m3 2.5h12.5l-1.5855549 5.54944226c-.2453152.85860311-1.0300872 1.45055774-1.9230479 1.45055774h-6.70131161c-1.01909844 0-1.87522688-.76627159-1.98776747-1.77913695l-.80231812-7.22086305h-2"
+                              stroke="#000000"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+
+                        <g fill="#000000">
+                            <circle cx="5" cy="12" r="1"/>
+                            <circle cx="13" cy="12" r="1"/>
+                        </g>
+                    </g>
+                </svg>
+
+                <span id="navbar-cart-count"
+                      class="absolute -top-1 -right-1 bg-[#755440] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center {{ cartCount > 0 ? '' : 'hidden' }}">
+                    {{ cartCount }}
+                </span>
+
+            </button>
+
+
+{% if app.user %}
+    <a href="{{ path('app_account') }}"
+       class="text-sm font-medium text-[#4f3222] hover:underline">
+        Mon compte
+    </a>
+
+    <a href="{{ path('app_logout') }}"
+       class="text-sm font-medium text-[#4f3222] hover:underline">
+        Déconnexion
+    </a>
+
+{% else %}
+
+    <a href="{{ path('app_login') }}"
+       class="text-sm font-medium text-[#4f3222] hover:underline">
+        Login
+    </a>
+
+{% endif %}
+        </div>
+    </div>
+</header>

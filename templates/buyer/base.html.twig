@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Avella{% endblock %}</title>
+
+    <link rel="stylesheet"
+          href="{{ asset('css/output.css') }}">
+</head>
+
+<body>
+
+{% include 'components/_navbar.html.twig' %}
+
+{% block body %}
+{% endblock %}
+
+{% include 'components/_sidebar.html.twig' %}
+{% include 'components/_footer.html.twig' %}
+
+</body>
+</html>

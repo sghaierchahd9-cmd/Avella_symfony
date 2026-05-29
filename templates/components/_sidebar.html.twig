@@ -1,0 +1,89 @@
+<div id="sidebar-wrapper"
+     class="pointer-events-none fixed inset-0 z-[70] opacity-0 transition-opacity duration-300">
+
+    <div id="sidebar-overlay"
+         class="absolute inset-0 bg-black/45"></div>
+
+    <aside id="sidebar"
+           aria-hidden="true"
+           class="absolute left-0 top-0 flex h-full w-[22rem] max-w-[88vw] -translate-x-full flex-col
+                  overflow-y-auto border-r border-[#a88066] bg-[#e8d4c5]
+                  shadow-[0_18px_46px_rgba(77,48,31,0.28)] transition-transform duration-300 ease-out">
+
+        <div class="relative border-b border-[#b08a72] px-6 py-5">
+
+            <div class="absolute right-5 top-5">
+
+                <button id="close-sidebar"
+                        aria-label="Close sidebar"
+                        class="rounded-full p-2 text-[#5b3d2a] transition hover:bg-white/40 hover:text-[#2f1d13]">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="1.8"
+                         stroke="currentColor"
+                         class="h-6 w-6">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M6 18 18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="pr-12">
+                <p class="text-xs uppercase tracking-[0.22em] text-[#8b674f]">
+                    Maison Avella
+                </p>
+
+                <h2 class="mt-2 font-serif text-4xl text-[#4f3222]">
+                    Avella
+                </h2>
+
+                <p class="mt-2 text-sm text-[#6d4d3b]">
+                    Elegance artisanale pour votre quotidien.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="px-5 py-6">
+
+            <nav class="space-y-2">
+
+                <a href="{{ path('buyer_dashboard') }}"
+                   class="group flex items-center justify-between rounded-2xl border border-[#c7a88f]
+                             bg-white/45 px-4 py-3 text-[#5a3a29] transition
+                          hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Accueil</span>
+                </a>
+
+                <a href="{{ path('app_boutique') }}"
+                   class="group flex items-center justify-between rounded-2xl border border-[#c7a88f]
+                          bg-white/45 px-4 py-3 text-[#5a3a29] transition
+                          hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Boutiques</span>
+                </a>
+
+                <a href="{{ path('produit_index') }}"
+                   class="group flex items-center justify-between rounded-2xl border border-[#c7a88f]
+                          bg-white/45 px-4 py-3 text-[#5a3a29] transition
+                          hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Explorer</span>
+                </a>
+
+                {% if app.user %}
+
+                <a href="{{ path('app_account') }}"
+                   class="group flex items-center justify-between rounded-2xl border border-[#c7a88f]
+                              bg-white/45 px-4 py-3 text-[#5a3a29] transition
+                              hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Mon compte</span>
+                </a>
+
+{% endif %}
+
+            </nav>
+        </div>
+    </aside>
+</div>

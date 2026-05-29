@@ -40,4 +40,12 @@ class CategorieRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function findAllOrderedByNom(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

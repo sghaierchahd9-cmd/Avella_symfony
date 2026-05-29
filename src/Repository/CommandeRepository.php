@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Commande;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,56 @@ class CommandeRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-}
+
+    public function findPendingByUser(User $user): ?Commande
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.user = :user')
+            ->andWhere('c.statut = :statut')
+            ->setParameter('user',   $user)
+            ->setParameter('statut', 'en_attente')
+            ->orderBy('c.created_at', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+    public function getCartCount(User $user): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('SUM(cp.quantite)')
+            ->join('c.commandeProduits', 'cp')
+            ->andWhere('c.user = :user')
+            ->andWhere('c.statut = :statut')
+            ->setParameter('user', $user)
+            ->setParameter('statut', 'en_attente')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+    public function findOrderHistoryByUser(User $user): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.user = :user')
+            ->andWhere('c.statut != :statut')
+            ->setParameter('user',   $user)
+            ->setParameter('statut', 'en_attente')
+            ->orderBy('c.created_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function countCartItems(User $user): int
+    {
+        $commande = $this->findPendingByUser($user);
+        if ($commande === null) {
+            return 0;
+        }
+        $result = $this->getEntityManager()
+            ->createQuery(
+                'SELECT COALESCE(SUM(cp.quantite), 0)
+                 FROM App\Entity\CommandeProduits cp
+                 WHERE cp.commande = :commande'
+            )
+            ->setParameter('commande', $commande)
+            ->getSingleScalarResult();
+
+        return (int) $result;
+    }}

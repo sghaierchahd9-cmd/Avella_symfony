@@ -1,0 +1,493 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Avella{% endblock %}
+
+{% block body %}
+<head title="Avella">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    avella1: '#f4e5d9',
+                    avella2: '#e9d3c3',
+                    avella3: '#c99f85',
+                    avella4: '#8b674f',
+                    avella5: '#4f3222',
+                    avella6: '#2f1d13',
+                },
+                fontFamily: {
+                    serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                }
+            }
+        }
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="{{ asset('build/tailwind.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Playfair Display', Georgia, serif; }
+    .btn-primary {
+        background-color: #c99f85;
+        color: #4f3222;
+        padding: 0.45rem 1.1rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: background-color 0.2s;
+    }
+    .btn-primary:hover { background-color: #b08a72; }
+</style>
+</head>
+<body class="overflow-y-scroll overflow-x-hidden scroll-smooth bg-[#f4e5d9] min-h-screen">
+
+{# ============================================================ NAVBAR #}
+<header class="sticky top-0 isolate z-50 border-b border-black/10 bg-[#c99f85]/95 backdrop-blur-md">
+    <div class="mx-auto flex w-full max-w-[1400px] items-center gap-2 px-3 py-3 sm:px-4">
+
+        {# Burger #}
+        <button id="open-sidebar" aria-label="Open sidebar"
+                class="rounded-full p-2 text-[#4f3222] transition hover:bg-[#755440] hover:text-[#fff8f3] hover:shadow-[0_10px_20px_rgba(139,103,79,0.35)] active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+            </svg>
+        </button>
+
+        {# Logo + nav links #}
+        <div class="flex shrink-0 items-center gap-3">
+            <img src="{{ asset('images/AHHH.png') }}" alt="Avella" class="h-10 sm:h-11">
+            <div class="hidden items-center gap-1 md:flex">
+                <a href="{{ path('app_home') }}" class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">Home</a>
+                <a href="{{ path('produit_index') }}" class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">Explore</a>
+                <a href="{{ path('app_boutique') }}" class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">Boutiques</a>
+                {% if app.user and 'ROLE_VENDEUR' in app.user.roles %}
+                    <a href="{{ path('seller_dashboard') }}" class="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-avella5 transition hover:bg-white/30 hover:text-avella6">Mon Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Search bar #}
+        <div class="relative mx-auto hidden max-w-xl flex-1 md:flex">
+            <form action="{{ path('produit_index') }}" method="GET" class="relative w-full flex">
+                <span class="absolute inset-y-0 left-3 flex items-center text-[#5D4133]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z"/>
+                    </svg>
+                </span>
+                <input type="text" name="nom" placeholder="Rechercher..."
+                       class="w-full rounded-full border border-[#7f5e49] bg-[#e3d5cc] px-10 py-2 font-light placeholder-[#5D4133] transition focus:border-avella3 focus:outline-none focus:ring-2 focus:ring-avella3">
+            </form>
+        </div>
+
+        {# Cart + account #}
+        <div class="ml-auto flex items-center gap-1.5 sm:gap-2">
+            <button id="cart-open-btn" aria-label="Panier"
+                    class="relative rounded-full p-1.5 text-xl transition hover:bg-white/30">
+                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 21 21">
+                    <g fill="none" fill-rule="evenodd" transform="translate(2 4)">
+                        <path d="m3 2.5h12.5l-1.5855549 5.54944226c-.2453152.85860311-1.0300872 1.45055774-1.9230479 1.45055774h-6.70131161c-1.01909844 0-1.87522688-.76627159-1.98776747-1.77913695l-.80231812-7.22086305h-2"
+                              stroke="#000000" stroke-linecap="round" stroke-linejoin="round"/>
+                        <g fill="#000000"><circle cx="5" cy="12" r="1"/><circle cx="13" cy="12" r="1"/></g>
+                    </g>
+                </svg>
+                {% if app.user %}
+                    <span id="navbar-cart-count"
+                          class="absolute -top-1 -right-1 bg-[#755440] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center {{ cartCount > 0 ? '' : 'hidden' }}">
+                        {{ cartCount }}
+                    </span>
+                {% endif %}
+            </button>
+
+            {% if app.user %}
+                <a href="{{ '#' }}" class="btn-primary ml-1 text-sm font-medium text-[#4f3222] hover:underline">Mon compte</a>
+                <a href="{{ path('app_logout') }}" class="btn-primary ml-1 text-sm font-medium text-[#4f3222] hover:underline">Déconnexion</a>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn-primary ml-1">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+<br>
+{# ============================================================ HERO SLIDER #}
+<section class="relative w-full overflow-hidden mt-6">
+    <div id="slider" class="flex transition-transform duration-500 bg-[#C99F85] ease-in-out">
+        <img src="{{ asset('images/photo1.png') }}" class="w-full flex-shrink-0 object-cover h-[500px]" alt="">
+        <img src="{{ asset('images/photo2.png') }}" class="w-full flex-shrink-0 object-cover h-[500px]" alt="">
+        <img src="{{ asset('images/photo3.png') }}" class="w-full flex-shrink-0 object-cover h-[500px]" alt="">
+    </div>
+    <button onclick="prevSlidepub()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-3 rounded-full shadow text-[#4f3222] font-bold">❮</button>
+    <button onclick="nextSlidepub()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-3 rounded-full shadow text-[#4f3222] font-bold">❯</button>
+    {# Dots #}
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        <span class="slider-dot w-2.5 h-2.5 rounded-full bg-white/80 cursor-pointer" onclick="goToSlide(0)"></span>
+        <span class="slider-dot w-2.5 h-2.5 rounded-full bg-white/40 cursor-pointer" onclick="goToSlide(1)"></span>
+        <span class="slider-dot w-2.5 h-2.5 rounded-full bg-white/40 cursor-pointer" onclick="goToSlide(2)"></span>
+    </div>
+</section>
+
+{# ============================================================ CATEGORIES #}
+<section class="mt-16 px-4">
+    <h2 class="text-4xl text-[#6c550f] font-bold font-serif ml-8 mb-8">Nos Catégories</h2>
+
+    {% if categories is not empty %}
+        <div class="relative overflow-hidden">
+            <div id="categories-wrapper" class="flex transition-transform duration-500 ease-in-out">
+                {% for cat in categories %}
+                    <div class="min-w-[260px] mx-2 flex-shrink-0">
+                        <a href="{{ path('app_boutique') }}?categorie_id={{ cat.id }}"
+                           class="relative block rounded-2xl shadow-xl overflow-hidden hover:scale-95 transition-transform duration-300">
+                            {% if cat.photo %}
+                                <img src="{{ asset(cat.photo) }}"
+                                     alt="{{ cat.nom }}"
+                                     class="h-96 w-64 object-cover"
+                                     onerror="this.parentNode.style.background='#c9a989'">
+                            {% else %}
+                                <div class="h-96 w-64 bg-[#c9a989] flex items-center justify-center">
+                                    <span class="font-serif text-2xl text-[#4f3222]">{{ cat.nom }}</span>
+                                </div>
+                            {% endif %}
+                            <span class="absolute bottom-2 left-2 text-white font-bold font-serif text-xl drop-shadow-lg">
+                                {{ cat.nom }}
+                            </span>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button onclick="prevSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-3 rounded-full shadow z-10 text-[#4f3222] font-bold">❮</button>
+            <button onclick="nextSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-3 rounded-full shadow z-10 text-[#4f3222] font-bold">❯</button>
+        </div>
+    {% else %}
+        <p class="ml-8 text-[#8a6652] font-serif">Aucune catégorie disponible.</p>
+    {% endif %}
+</section>
+
+{# ============================================================ TENDANCES #}
+<section class="mt-20 px-4 pb-16">
+    <h2 class="text-4xl text-[#6c550f] font-bold font-serif ml-8 mb-8">Tendances Actuelles</h2>
+
+    {% if tendances is not empty %}
+        <div class="flex flex-wrap gap-6 ml-8">
+            {% for prod in tendances %}
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden w-64 flex flex-col hover:shadow-xl transition-shadow">
+                    <a href="{{ path('produit_show', {id: prod.id}) }}">
+                        {% if prod.image %}
+                            <img src="{{ asset(prod.image) }}"
+                                 alt="{{ prod.nom }}"
+                                 class="h-64 w-full object-cover"
+                                 onerror="this.src='{{ asset('images/prodvend2.png') }}'">
+                        {% else %}
+                            <div class="h-64 w-full bg-[#ecdfd5] flex items-center justify-center">
+                                <span class="font-serif text-4xl text-[#755440]">{{ prod.nom|slice(0,1) }}</span>
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div class="p-4 flex flex-col gap-1 flex-1">
+                        <span class="text-xs font-semibold uppercase tracking-widest text-[#c99f85]">
+                            {% if prod.boutique %}{{ prod.boutique.nom }}{% endif %}
+                            {% if prod.categorie %} · {{ prod.categorie.nom }}{% endif %}
+                        </span>
+                        <a href="{{ path('produit_show', {id: prod.id}) }}"
+                           class="font-serif font-bold text-[#3e2612] text-base hover:underline">
+                            {{ prod.nom }}
+                        </a>
+                        <p class="text-[#755440] font-bold text-sm">
+                            {{ prod.prix|number_format(2, '.', ' ') }} TND
+                        </p>
+
+                        {% if app.user %}
+                            <button class="avella-add-to-cart mt-2 w-full bg-[#ccab89] hover:bg-[#f3d38d] hover:border-2 hover:border-[#382301]
+                                   text-[#4c3e14] font-serif font-bold rounded-2xl py-2 text-sm transition"
+                                    data-produit-id="{{ prod.id }}">
+                                Ajouter au panier
+                            </button>
+                        {% else %}
+                            <a href="{{ path('app_login') }}"
+                               class="mt-2 block text-center bg-[#ccab89] hover:bg-[#c99f85] text-[#382301]
+                              font-serif font-bold rounded-2xl py-2 text-sm transition">
+                                🔒 Connectez-vous
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="ml-8 text-[#8a6652] font-serif">Aucun produit tendance pour le moment.</p>
+    {% endif %}
+</section>
+
+{# ============================================================ FOOTER #}
+<footer class="mt-20 bg-[#c99f85]">
+    <div class="ml-10 py-8 pr-10">
+        <p class="font-serif text-8xl font-bold text-[#ebd5c5]">AVELLA</p>
+        <p class="text-2xl mt-6 font-semibold text-[#4f3222]">Qui sommes nous ?</p>
+        <p class="text-base mt-3 text-[#422c22] max-w-3xl leading-relaxed tracking-wide">
+            ⥼ Avella est une plateforme dédiée aux small businesses, leur permettant de vendre leurs produits en
+            ligne en toute simplicité.
+            Notre site web offre une visibilité optimale aux entreprises locales et met en valeur des produits de
+            haute qualité.
+            De plus, nous facilitons la livraison à domicile afin de garantir une expérience client pratique et fiable.
+        </p>
+    </div>
+
+    <div class="flex items-center gap-3 px-10 pb-2">
+        {# Facebook #}
+        <a href="#" class="text-[#4f3222] hover:text-[#2f1d13] transition p-1">
+            <svg fill="currentColor" width="30" height="30" viewBox="0 0 24 24">
+                <path d="M12 2.03998C6.5 2.03998 2 6.52998 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.84998C10.44 7.33998 11.93 5.95998 14.22 5.95998C15.31 5.95998 16.45 6.14998 16.45 6.14998V8.61998H15.19C13.95 8.61998 13.56 9.38998 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96C15.9164 21.5878 18.0622 20.3855 19.6099 18.57C21.1576 16.7546 22.0054 14.4456 22 12.06C22 6.52998 17.5 2.03998 12 2.03998Z"/>
+            </svg>
+        </a>
+        {# Instagram #}
+        <a href="#" class="text-[#4f3222] hover:text-[#2f1d13] transition p-1">
+            <svg fill="currentColor" width="28" height="28" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"/>
+                <path d="M18 5C17.4477 5 17 5.44772 17 6C17 6.55228 17.4477 7 18 7C18.5523 7 19 6.55228 19 6C19 5.44772 18.5523 5 18 5Z"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M1.65396 4.27606C1 5.55953 1 7.23969 1 10.6V13.4C1 16.7603 1 18.4405 1.65396 19.7239C2.2292 20.8529 3.14708 21.7708 4.27606 22.346C5.55953 23 7.23969 23 10.6 23H13.4C16.7603 23 18.4405 23 19.7239 22.346C20.8529 21.7708 21.7708 20.8529 22.346 19.7239C23 18.4405 23 16.7603 23 13.4V10.6C23 7.23969 23 5.55953 22.346 4.27606C21.7708 3.14708 20.8529 2.2292 19.7239 1.65396C18.4405 1 16.7603 1 13.4 1H10.6C7.23969 1 5.55953 1 4.27606 1.65396C3.14708 2.2292 2.2292 3.14708 1.65396 4.27606ZM13.4 3H10.6C8.88684 3 7.72225 3.00156 6.82208 3.0751C5.94524 3.14674 5.49684 3.27659 5.18404 3.43597C4.43139 3.81947 3.81947 4.43139 3.43597 5.18404C3.27659 5.49684 3.14674 5.94524 3.0751 6.82208C3.00156 7.72225 3 8.88684 3 10.6V13.4C3 15.1132 3.00156 16.2777 3.0751 17.1779C3.14674 18.0548 3.27659 18.5032 3.43597 18.816C3.81947 19.5686 4.43139 20.1805 5.18404 20.564C5.49684 20.7234 5.94524 20.8533 6.82208 20.9249C7.72225 20.9984 8.88684 21 10.6 21H13.4C15.1132 21 16.2777 20.9984 17.1779 20.9249C18.0548 20.8533 18.5032 20.7234 18.816 20.564C19.5686 20.1805 20.1805 19.5686 20.564 18.816C20.7234 18.5032 20.8533 18.0548 20.9249 17.1779C20.9984 16.2777 21 15.1132 21 13.4V10.6C21 8.88684 20.9984 7.72225 20.9249 6.82208C20.8533 5.94524 20.7234 5.49684 20.564 5.18404C20.1805 4.43139 19.5686 3.81947 18.816 3.43597C18.5032 3.27659 18.0548 3.14674 17.1779 3.0751C16.2777 3.00156 15.1132 3 13.4 3Z"/>
+            </svg>
+        </a>
+        {# LinkedIn #}
+        <a href="#" class="text-[#4f3222] hover:text-[#2f1d13] transition p-1">
+            <svg fill="currentColor" width="32" height="32" viewBox="0 0 24 24">
+                <path d="M18.72 3.99997H5.37C5.19793 3.99191 5.02595 4.01786 4.86392 4.07635C4.70189 4.13484 4.55299 4.22471 4.42573 4.34081C4.29848 4.45692 4.19537 4.59699 4.12232 4.75299C4.04927 4.909 4.0077 5.07788 4 5.24997V18.63C4.01008 18.9901 4.15766 19.3328 4.41243 19.5875C4.6672 19.8423 5.00984 19.9899 5.37 20H18.72C19.0701 19.9844 19.4002 19.8322 19.6395 19.5761C19.8788 19.32 20.0082 18.9804 20 18.63V5.24997C20.0029 5.08247 19.9715 4.91616 19.9078 4.76122C19.8441 4.60629 19.7494 4.466 19.6295 4.34895C19.5097 4.23191 19.3672 4.14059 19.2108 4.08058C19.0544 4.02057 18.8874 3.99314 18.72 3.99997ZM9 17.34H6.67V10.21H9V17.34ZM7.89 9.12997C7.72741 9.13564 7.5654 9.10762 7.41416 9.04768C7.26291 8.98774 7.12569 8.89717 7.01113 8.78166C6.89656 8.66615 6.80711 8.5282 6.74841 8.37647C6.6897 8.22474 6.66301 8.06251 6.67 7.89997C6.66281 7.73567 6.69004 7.57169 6.74995 7.41854C6.80986 7.26538 6.90112 7.12644 7.01787 7.01063C7.13463 6.89481 7.2743 6.80468 7.42793 6.74602C7.58157 6.68735 7.74577 6.66145 7.91 6.66997C8.07259 6.66431 8.2346 6.69232 8.38584 6.75226C8.53709 6.8122 8.67431 6.90277 8.78887 7.01828C8.90344 7.13379 8.99289 7.27174 9.05159 7.42347C9.1103 7.5752 9.13699 7.73743 9.13 7.89997C9.13719 8.06427 9.10996 8.22825 9.05005 8.3814C8.99014 8.53456 8.89888 8.6735 8.78213 8.78931C8.66537 8.90513 8.5257 8.99526 8.37207 9.05392C8.21843 9.11259 8.05423 9.13849 7.89 9.12997ZM17.34 17.34H15V13.44C15 12.51 14.67 11.87 13.84 11.87C13.5822 11.8722 13.3313 11.9541 13.1219 12.1045C12.9124 12.2549 12.7546 12.4664 12.67 12.71C12.605 12.8926 12.5778 13.0865 12.59 13.28V17.34H10.29V10.21H12.59V11.21C12.7945 10.8343 13.0988 10.5225 13.4694 10.3089C13.84 10.0954 14.2624 9.98848 14.69 9.99997C16.2 9.99997 17.34 11 17.34 13.13V17.34Z"/>
+            </svg>
+        </a>
+        {# WhatsApp #}
+        <a href="#" class="text-[#4f3222] hover:text-[#2f1d13] transition p-1">
+            <svg fill="currentColor" width="30" height="30" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M3.50002 12C3.50002 7.30558 7.3056 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C10.3278 20.5 8.77127 20.0182 7.45798 19.1861C7.21357 19.0313 6.91408 18.9899 6.63684 19.0726L3.75769 19.9319L4.84173 17.3953C4.96986 17.0955 4.94379 16.7521 4.77187 16.4751C3.9657 15.176 3.50002 13.6439 3.50002 12ZM12 1.5C6.20103 1.5 1.50002 6.20101 1.50002 12C1.50002 13.8381 1.97316 15.5683 2.80465 17.0727L1.08047 21.107C0.928048 21.4637 0.99561 21.8763 1.25382 22.1657C1.51203 22.4552 1.91432 22.5692 2.28599 22.4582L6.78541 21.1155C8.32245 21.9965 10.1037 22.5 12 22.5C17.799 22.5 22.5 17.799 22.5 12C22.5 6.20101 17.799 1.5 12 1.5Z"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="flex items-center justify-between px-10 pb-5 pt-3 flex-wrap gap-3 border-t border-[#b5896e]/40 mt-2">
+        <p class="text-sm text-[#372608]">
+            <a href="#" class="hover:text-[#7f5641] hover:underline">Conditions d'utilisation</a> |
+            <a href="#" class="hover:text-[#7f5641] hover:underline"> Politique de confidentialité</a> |
+            <a href="#" class="hover:text-[#7f5641] hover:underline"> Politique de retour</a> |
+            <a href="#" class="hover:text-[#7f5641] hover:underline"> FAQ</a>
+        </p>
+        <p class="text-sm text-[#41392c]">&copy; {{ "now"|date("Y") }} Avella. Tous droits réservés.</p>
+    </div>
+</footer>
+
+{# ============================================================ CART MODAL (utilisateurs connectés) #}
+{% if app.user %}
+    <div id="cart-modal" class="pointer-events-none fixed inset-0 z-[60] opacity-0 transition-opacity duration-300">
+        <div id="cart-overlay" class="absolute inset-0 bg-black/45"></div>
+        <aside id="cart-panel"
+               class="absolute right-0 top-0 flex h-full w-[22rem] max-w-[92vw] translate-x-full flex-col
+                  overflow-y-auto border-l border-[#a88066] bg-[#f9f0e8]
+                  shadow-[-18px_0_46px_rgba(77,48,31,0.28)] transition-transform duration-300 ease-out">
+            <div class="flex items-center justify-between border-b border-[#c9a989] px-6 py-4">
+                <h2 class="font-serif text-xl font-bold text-[#4f3222]">Mon Panier</h2>
+                <button id="cart-close-btn" class="rounded-full p-2 text-[#5b3d2a] hover:bg-white/50 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="cart-content" class="flex-1 overflow-y-auto px-4 py-4">
+                <p class="text-center text-[#8a6652] font-serif py-8">Chargement…</p>
+            </div>
+            <div class="border-t border-[#c9a989] px-6 py-4">
+                <div class="flex justify-between mb-3">
+                    <span class="font-semibold text-[#4f3222]">Total :</span>
+                    <span id="cart-total" class="font-bold text-[#755440]">0.000 TND</span>
+                </div>
+                <form action="{{ path('cart_confirmer') }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('confirm_order') }}">
+                    <button type="submit" class="w-full bg-[#755440] text-white font-bold py-3 rounded-2xl hover:bg-[#4f3222] transition">
+                        Confirmer la commande
+                    </button>
+                </form>
+            </div>
+        </aside>
+    </div>
+{% endif %}
+
+{# ============================================================ SIDEBAR #}
+<div id="sidebar-wrapper" class="pointer-events-none fixed inset-0 z-[70] opacity-0 transition-opacity duration-300">
+    <div id="sidebar-overlay" class="absolute inset-0 bg-black/45"></div>
+    <aside id="sidebar" aria-hidden="true"
+           class="absolute left-0 top-0 flex h-full w-[22rem] max-w-[88vw] -translate-x-full flex-col
+                  overflow-y-auto border-r border-[#a88066] bg-avella2
+                  shadow-[0_18px_46px_rgba(77,48,31,0.28)] transition-transform duration-300 ease-out">
+        <div class="relative border-b border-[#b08a72] px-6 py-5">
+            <div class="absolute right-5 top-5">
+                <button id="close-sidebar" aria-label="Close sidebar"
+                        class="rounded-full p-2 text-[#5b3d2a] transition hover:bg-white/40 hover:text-[#2f1d13]">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="pr-12">
+                <p class="text-xs uppercase tracking-[0.22em] text-avella3">Maison Avella</p>
+                <h2 class="mt-2 font-serif text-4xl text-[#4f3222]">Avella</h2>
+                <p class="mt-2 text-sm text-[#6d4d3b]">Elegance artisanale pour votre quotidien.</p>
+            </div>
+        </div>
+        <div class="px-5 py-6">
+            <nav class="space-y-2">
+                <a href="{{ path('app_home') }}" class="group flex items-center justify-between rounded-2xl border border-[#c7a88f] bg-white/45 px-4 py-3 text-[#5a3a29] transition hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Accueil</span>
+                </a>
+                <a href="{{ path('app_boutique') }}" class="group flex items-center justify-between rounded-2xl border border-[#c7a88f] bg-white/45 px-4 py-3 text-[#5a3a29] transition hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Boutiques</span>
+                </a>
+                <a href="{{ path('produit_index') }}" class="group flex items-center justify-between rounded-2xl border border-[#c7a88f] bg-white/45 px-4 py-3 text-[#5a3a29] transition hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Explorer</span>
+                </a>
+                <a href="{{ '#'}}" class="group flex items-center justify-between rounded-2xl border border-[#c7a88f] bg-white/45 px-4 py-3 text-[#5a3a29] transition hover:border-[#9a7158] hover:bg-white/70">
+                    <span class="font-medium">Mon compte</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+</div>
+
+{# ============================================================ SCRIPTS #}
+<script>
+    // ── Hero Slider ──────────────────────────────────────────────────────────────
+    let currentSlidePub = 0;
+    const totalSlidesPub = 3;
+
+    function updateSlider() {
+        document.getElementById('slider').style.transform = `translateX(-${currentSlidePub * 100}%)`;
+        document.querySelectorAll('.slider-dot').forEach((dot, i) => {
+            dot.style.opacity = i === currentSlidePub ? '1' : '0.4';
+        });
+    }
+
+    function nextSlidepub() {
+        currentSlidePub = (currentSlidePub + 1) % totalSlidesPub;
+        updateSlider();
+    }
+
+    function prevSlidepub() {
+        currentSlidePub = (currentSlidePub - 1 + totalSlidesPub) % totalSlidesPub;
+        updateSlider();
+    }
+
+    function goToSlide(i) {
+        currentSlidePub = i;
+        updateSlider();
+    }
+
+    setInterval(nextSlidepub, 5000);
+
+    // ── Categories Slider ─────────────────────────────────────────────────────────
+    let catIndex = 0;
+    const catItemWidth = 276;
+
+    function nextSlide() {
+        const wrapper = document.getElementById('categories-wrapper');
+        if (!wrapper) return;
+        const maxIndex = Math.max(0, wrapper.children.length - Math.floor(wrapper.parentElement.offsetWidth / catItemWidth));
+        catIndex = Math.min(catIndex + 1, maxIndex);
+        wrapper.style.transform = `translateX(-${catIndex * catItemWidth}px)`;
+    }
+
+    function prevSlide() {
+        catIndex = Math.max(catIndex - 1, 0);
+        document.getElementById('categories-wrapper').style.transform = `translateX(-${catIndex * catItemWidth}px)`;
+    }
+
+    // ── Sidebar ───────────────────────────────────────────────────────────────────
+    const sidebarWrapper = document.getElementById('sidebar-wrapper');
+    const sidebar        = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function openSidebar() {
+        sidebarWrapper.classList.remove('pointer-events-none', 'opacity-0');
+        sidebarWrapper.classList.add('pointer-events-auto', 'opacity-100');
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        sidebar.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSidebar() {
+        sidebarWrapper.classList.remove('pointer-events-auto', 'opacity-100');
+        sidebarWrapper.classList.add('pointer-events-none', 'opacity-0');
+        sidebar.classList.remove('translate-x-0');
+        sidebar.classList.add('-translate-x-full');
+        sidebar.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('open-sidebar')?.addEventListener('click', openSidebar);
+    document.getElementById('close-sidebar')?.addEventListener('click', closeSidebar);
+    sidebarOverlay?.addEventListener('click', closeSidebar);
+
+    // ── Cart Modal ────────────────────────────────────────────────────────────────
+    const cartModal   = document.getElementById('cart-modal');
+    const cartPanel   = document.getElementById('cart-panel');
+    const cartOverlay = document.getElementById('cart-overlay');
+
+    function openCart() {
+        if (!cartModal) { window.location.href = '{{ path("app_login") }}'; return; }
+        cartModal.classList.remove('pointer-events-none', 'opacity-0');
+        cartModal.classList.add('pointer-events-auto', 'opacity-100');
+        cartPanel.classList.remove('translate-x-full');
+        cartPanel.classList.add('translate-x-0');
+        loadCartFragment();
+    }
+
+    function closeCart() {
+        cartModal.classList.remove('pointer-events-auto', 'opacity-100');
+        cartModal.classList.add('pointer-events-none', 'opacity-0');
+        cartPanel.classList.remove('translate-x-0');
+        cartPanel.classList.add('translate-x-full');
+    }
+
+    document.getElementById('cart-open-btn')?.addEventListener('click', openCart);
+    document.getElementById('cart-close-btn')?.addEventListener('click', closeCart);
+    cartOverlay?.addEventListener('click', closeCart);
+
+    function loadCartFragment() {
+        const content = document.getElementById('cart-content');
+        if (!content) return;
+        fetch('{{ path("cart_fragment") }}')
+            .then(r => r.text())
+            .then(html => { content.innerHTML = html; })
+            .catch(() => { content.innerHTML = '<p class="text-center text-red-500 py-8">Erreur de chargement</p>'; });
+    }
+
+    // ── Add to cart AJAX ──────────────────────────────────────────────────────────
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.avella-add-to-cart');
+        if (!btn) return;
+
+        const produitId = btn.dataset.produitId;
+        btn.disabled = true;
+        btn.textContent = '…';
+
+        fetch('{{ path("cart_ajouter") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `produit_id=${produitId}&quantite=1`
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.getElementById('navbar-cart-count');
+                    if (badge) {
+                        badge.textContent = data.cart_count;
+                        badge.classList.toggle('hidden', data.cart_count === 0);
+                    }
+                    btn.textContent = '✓ Ajouté !';
+                    setTimeout(() => {
+                        btn.textContent = 'Ajouter au panier';
+                        btn.disabled = false;
+                    }, 1500);
+                }
+            })
+            .catch(() => {
+                btn.textContent = 'Erreur';
+                btn.disabled = false;
+            });
+    });
+</script>
+
+{% endblock %}

@@ -136,4 +136,35 @@ class ProduitController extends AbstractController
 
         return $this->redirectToRoute('seller_dashboard');
     }
+
+    /**
+     * Single product detail page.
+     * Mirrors pages/buyer/Produit.php + produits::findById() + produit_couleur query.
+     */
+    #[Route('/produit/{id}', name: 'produit_show', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function show(
+        int                    $id,
+        ProduitRepository      $produitRepo,
+        ProduitCouleurRepository $couleurRepo,
+        CartService            $cartService,
+    ): Response {
+        /** @var \App\Entity\User $user */
+        $user    = $this->getUser();
+        $produit = $produitRepo->findById($id);
+
+        if ($produit === null) {
+            throw $this->createNotFoundException('Produit introuvable.');
+        }
+
+        $couleurs  = $couleurRepo->findBy(['produit' => $produit]);
+        $cartCount = $cartService->countCartItems($user);
+
+        return $this->render('produit/show.html.twig', [
+            'produit'   => $produit,
+            'couleurs'  => $couleurs,
+            'cartCount' => $cartCount,
+        ]);
+    }
+
+
 }
