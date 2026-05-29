@@ -1,0 +1,77 @@
+{# templates/components/_navbar.html.twig
+   Reusable top navigation bar.
+   Expected variables:
+     cartCount  (int)  — number of items in the current user's cart
+#}
+<nav class="navbar fixed top-0 left-0 right-0 z-50 bg-white shadow-sm flex items-center justify-between px-6 py-3 h-16">
+
+    {# — Logo / Brand — #}
+    <a href="{{ path('buyer_dashboard') }}" class="flex items-center gap-2 text-xl font-bold text-indigo-600">
+        <img src="{{ asset('images/logo.png') }}" alt="Avella" class="h-8 w-auto" onerror="this.style.display='none'">
+        <span>Avella</span>
+    </a>
+
+    {# — Main navigation links — #}
+    <ul class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+        <li>
+            <a href="{{ path('buyer_dashboard') }}"
+               class="hover:text-indigo-600 transition-colors {% if app.current_route == 'buyer_dashboard' %}text-indigo-600{% endif %}">
+                Accueil
+            </a>
+        </li>
+        <li>
+            <a href="{{ path('produit_index') }}"
+               class="hover:text-indigo-600 transition-colors {% if app.current_route starts with 'produit' %}text-indigo-600{% endif %}">
+                Produits
+            </a>
+        </li>
+    </ul>
+
+    {# — Right-hand actions — #}
+    <div class="flex items-center gap-4">
+
+        {# Cart toggle button #}
+        <button id="open-cart"
+                class="relative p-2 text-gray-600 hover:text-indigo-600 transition-colors"
+                aria-label="Ouvrir le panier">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3"/>
+            </svg>
+            <span id="cart-badge"
+                  class="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center
+                         {% if cartCount == 0 %}hidden{% endif %}">
+                {{ cartCount }}
+            </span>
+        </button>
+
+        {# Sidebar / hamburger (mobile) #}
+        <button id="open-sidebar"
+                class="p-2 text-gray-600 hover:text-indigo-600 transition-colors md:hidden"
+                aria-label="Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        {# User menu / logout #}
+        {% if app.user %}
+            <div class="relative group hidden md:block">
+                <button class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+                    <span>{{ app.user.prenom }} {{ app.user.nom }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div class="absolute right-0 mt-2 w-40 bg-white border border-gray-100 rounded-lg shadow-lg
+                        opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                    <a href="{{ path('app_logout') }}"
+                       class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                        Déconnexion
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</nav>

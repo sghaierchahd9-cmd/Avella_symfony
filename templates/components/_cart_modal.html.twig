@@ -1,0 +1,120 @@
+{# templates/components/_cart_modal.html.twig
+   Full cart modal: overlay, panel, CSS, and window.AVELLA_ROUTES injection.
+   Include ONCE per page, just before </body>.
+
+   Expected variables:
+     cartCount  (int)   — initial badge count (passed from controller)
+#}
+
+{# ── Inline CSS for the modal (scoped, no external file needed) ── #}
+<style>
+    #cart-modal-overlay {
+        transition: opacity .25s ease;
+    }
+    #cart-modal-panel {
+        transition: transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    #cart-modal-overlay.hidden #cart-modal-panel {
+        transform: translateX(100%);
+    }
+    .cart-item-row {
+        display: grid;
+        grid-template-columns: 56px 1fr auto;
+        gap: .75rem;
+        align-items: center;
+        padding: .75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .cart-item-row:last-child { border-bottom: none; }
+    .qty-btn {
+        width: 28px; height: 28px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid #e5e7eb; border-radius: 6px;
+        background: #fff; cursor: pointer; font-size: .875rem; font-weight: 600;
+        color: #374151;
+        transition: background .15s;
+    }
+    .qty-btn:hover { background: #f3f4f6; }
+</style>
+
+{# ── Modal overlay (hidden by default) ── #}
+<div id="cart-modal-overlay"
+     class="fixed inset-0 z-50 bg-black/40 hidden"
+     aria-hidden="true">
+
+    {# ── Slide-in panel ── #}
+    <div id="cart-modal-panel"
+         class="absolute top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl
+                flex flex-col translate-x-full">
+
+        {# Header #}
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-bold text-gray-800">
+                Mon panier
+                <span id="modal-cart-count"
+                      class="ml-1 text-sm font-normal text-gray-400">
+                    ({{ cartCount }} article{{ cartCount != 1 ? 's' }})
+                </span>
+            </h2>
+            <button id="close-cart"
+                    class="p-1 text-gray-500 hover:text-gray-800 transition-colors"
+                    aria-label="Fermer le panier">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        {# Scrollable body — refreshed by cart.js via AJAX #}
+        <div id="cart-body" class="flex-1 overflow-y-auto px-5 py-4">
+            {# Initial state rendered server-side #}
+            {% include 'components/_cart_fragment.html.twig' with {
+                items: [],
+                total: 0
+            } %}
+        </div>
+
+        {# Footer actions #}
+        <div id="cart-footer" class="border-t border-gray-100 px-5 py-4 space-y-3">
+            <div class="flex items-center justify-between text-sm font-semibold text-gray-800">
+                <span>Total</span>
+                <span id="cart-total-display">—</span>
+            </div>
+
+            <form id="confirm-order-form"
+                  method="post"
+                  action="{{ path('cart_confirmer') }}">
+                <button type="submit"
+                        class="w-full py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl
+                               hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                    Confirmer la commande
+                </button>
+            </form>
+
+            <button id="cancel-cart-btn"
+                    class="w-full py-2 border border-red-300 text-red-600 text-sm font-medium rounded-xl
+                           hover:bg-red-50 transition-colors">
+                Vider le panier
+            </button>
+        </div>
+    </div>{# /panel #}
+</div>{# /overlay #}
+
+
+{# ── AVELLA_ROUTES: single source of truth for cart.js URLs ──
+   cart.js reads window.AVELLA_ROUTES instead of the old dir() approach.
+   Always injected server-side so no hard-coded paths exist in cart.js.
+#}
+<script>
+    window.AVELLA_ROUTES = {
+        addToCart:    '{{ path("cart_ajouter") }}',
+        updateCart:   '{{ path("cart_modifier") }}',
+        cancelCart:   '{{ path("cart_vider") }}',
+        confirmOrder: '{{ path("cart_confirmer") }}',
+        cartFragment: '{{ path("cart_fragment") }}',
+        getCart:      '{{ path("cart_get") }}',
+        login:        '{{ path("app_login") }}'
+    };
+</script>

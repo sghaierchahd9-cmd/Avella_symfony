@@ -37,4 +37,26 @@ class ProduitRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function findTendances(int $limit = 8): array
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+    public function findById(int $id): ?Produit
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.boutique', 'b')
+            ->addSelect('b')
+            ->leftJoin('p.categorie', 'c')
+            ->addSelect('c')
+            ->where('p.id = :id')
+            ->setParameter('id', $id)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
