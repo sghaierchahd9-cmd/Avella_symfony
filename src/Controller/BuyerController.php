@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_USER')]
+
 class BuyerController extends AbstractController
 {
     #[Route('/buyer', name: 'buyer_dashboard', methods: ['GET'])]
@@ -21,13 +21,13 @@ class BuyerController extends AbstractController
         BoutiqueRepository  $boutiqueRepo,
         CartService         $cartService,
     ): Response {
-        /** @var \App\Entity\User $user */
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
-
         $categories = $categorieRepo->findAllOrderedByNom();
         $tendances  = $produitRepo->findTendances();
         $boutiques  = $boutiqueRepo->findBy(['statut' => 'actif'], ['created_at' => 'DESC']);
-        $cartCount  = $cartService->countCartItems($user);
+
+        $cartCount = $user ? $cartService->countCartItems($user) : 0;
 
         return $this->render('buyer/dashboard.html.twig', [
             'categories' => $categories,
@@ -35,5 +35,4 @@ class BuyerController extends AbstractController
             'boutiques'  => $boutiques,
             'cartCount'  => $cartCount,
         ]);
-    }
-}
+    }}
