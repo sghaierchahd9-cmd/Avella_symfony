@@ -1,0 +1,121 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% set admin_page = 'users' %}
+
+{% block admin_title %}Utilisateurs{% endblock %}
+{% block admin_page_title %}Utilisateurs{% endblock %}
+
+{% block admin_body %}
+    <section class="glass-panel">
+        <div class="admin-section-head">
+            <div>
+                <h1 class="admin-section-title">Utilisateurs</h1>
+                <p class="admin-section-copy">Liste des comptes enregistres.</p>
+            </div>
+            <div class="admin-count">{{ users|length }} comptes</div>
+        </div>
+
+        {% set isEditing = editUser is defined and editUser %}
+        {% if isEditing %}
+            {% set selectedRole = 'ROLE_CLIENT' %}
+            {% if 'ROLE_ADMIN' in editUser.roles %}
+                {% set selectedRole = 'ROLE_ADMIN' %}
+            {% elseif 'ROLE_VENDEUR' in editUser.roles %}
+                {% set selectedRole = 'ROLE_VENDEUR' %}
+            {% endif %}
+        {% endif %}
+
+        <form
+            method="post"
+            action="{{ isEditing ? path('admin_users_update', { id: editUser.id }) : path('admin_users_create') }}"
+            class="admin-form-grid"
+        >
+            <input type="hidden" name="_token" value="{{ csrf_token(isEditing ? 'admin_user_update_' ~ editUser.id : 'admin_user_create') }}">
+
+            <label class="field">
+                <span>Nom</span>
+                <input name="nom" value="{{ isEditing ? editUser.nom : '' }}" required>
+            </label>
+
+            <label class="field">
+                <span>Prenom</span>
+                <input name="prenom" value="{{ isEditing ? editUser.prenom : '' }}">
+            </label>
+
+            <label class="field">
+                <span>Email</span>
+                <input type="email" name="email" value="{{ isEditing ? editUser.email : '' }}" required>
+            </label>
+
+            <label class="field">
+                <span>Telephone</span>
+                <input name="telephone" value="{{ isEditing ? editUser.telephone : '' }}">
+            </label>
+
+            <label class="field">
+                <span>Role</span>
+                <select name="role">
+                    <option value="ROLE_CLIENT" {{ isEditing and selectedRole == 'ROLE_CLIENT' ? 'selected' : '' }}>Client</option>
+                    <option value="ROLE_VENDEUR" {{ isEditing and selectedRole == 'ROLE_VENDEUR' ? 'selected' : '' }}>Vendeur</option>
+                    <option value="ROLE_ADMIN" {{ isEditing and selectedRole == 'ROLE_ADMIN' ? 'selected' : '' }}>Admin</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>{{ isEditing ? 'Mot de passe optionnel' : 'Mot de passe' }}</span>
+                <input type="password" name="password" autocomplete="new-password" {{ isEditing ? '' : 'required' }}>
+            </label>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="btn-primary">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+                {% if isEditing %}
+                    <a href="{{ path('admin_users_index') }}" class="btn-ghost">Annuler</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <div class="admin-tools">
+            <label class="field">
+                <span>Recherche</span>
+                <input type="search" placeholder="Nom, email, role..." oninput="filterTable(this, 'users-table')">
+            </label>
+        </div>
+
+        <div class="table-panel">
+            <table id="users-table" class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="th">Nom</th>
+                        <th class="th">Email</th>
+                        <th class="th">Telephone</th>
+                        <th class="th">Roles</th>
+                        <th class="th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr class="tr">
+                            <td class="td-bold">{{ (user.prenom ~ ' ' ~ user.nom)|trim ?: 'Sans nom' }}</td>
+                            <td class="td">{{ user.email }}</td>
+                            <td class="td">{{ user.telephone ?: '-' }}</td>
+                            <td class="td">{{ user.roles|join(', ') }}</td>
+                            <td class="td">
+                                <div class="admin-row-actions">
+                                    <a href="{{ path('admin_users_index', { edit: user.id }) }}" class="btn-ghost">Modifier</a>
+                                    <form method="post" action="{{ path('admin_users_delete', { id: user.id }) }}" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_user_delete_' ~ user.id) }}">
+                                        <button type="submit" class="btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr class="tr">
+                            <td class="td" colspan="5">Aucun utilisateur.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

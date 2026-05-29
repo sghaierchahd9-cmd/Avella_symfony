@@ -1,0 +1,42 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% set admin_page = 'dashboard' %}
+
+{% block admin_title %}Tableau de bord{% endblock %}
+{% block admin_page_title %}Tableau de bord{% endblock %}
+
+{% block admin_body %}
+    <div class="admin-stack">
+        <section class="glass-panel">
+            <h1 class="admin-hero-title">Tableau de bord</h1>
+            <p class="admin-hero-copy">
+                Vue rapide de l'administration Avella.
+            </p>
+
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-label">Utilisateurs</div>
+                    <div class="admin-stat-value">{{ stats.users }}</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-label">Boutiques</div>
+                    <div class="admin-stat-value">{{ stats.boutiques }}</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-label">Categories</div>
+                    <div class="admin-stat-value">{{ stats.categories }}</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-label">Produits</div>
+                    <div class="admin-stat-value">{{ stats.products }}</div>
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <a href="{{ path('admin_users_index') }}" class="btn-primary">Utilisateurs</a>
+                <a href="{{ path('admin_products_index') }}" class="btn-ghost">Produits</a>
+                <a href="{{ path('admin_boutiques_index') }}" class="btn-ghost">Boutiques</a>
+            </div>
+        </section>
+    </div>
+{% endblock %}

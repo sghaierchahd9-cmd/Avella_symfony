@@ -1,0 +1,122 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% set admin_page = 'orders' %}
+
+{% block admin_title %}Commandes{% endblock %}
+{% block admin_page_title %}Commandes{% endblock %}
+
+{% block admin_body %}
+    <section class="glass-panel">
+        <div class="admin-section-head">
+            <div>
+                <h1 class="admin-section-title">Commandes</h1>
+                <p class="admin-section-copy">Gestion des commandes passees.</p>
+            </div>
+            <div class="admin-count">{{ orders|length }} commandes</div>
+        </div>
+
+        {% set isEditing = editOrder is defined and editOrder %}
+        <form
+            method="post"
+            action="{{ isEditing ? path('admin_orders_update', { id: editOrder.id }) : path('admin_orders_create') }}"
+            class="admin-form-grid"
+        >
+            <input type="hidden" name="_token" value="{{ csrf_token(isEditing ? 'admin_order_update_' ~ editOrder.id : 'admin_order_create') }}">
+
+            {% if not isEditing %}
+                <label class="field">
+                    <span>Client</span>
+                    <select name="user_id" required>
+                        <option value="">Choisir un client</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ (user.prenom ~ ' ' ~ user.nom)|trim ?: user.email }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Produit</span>
+                    <select name="produit_id" required>
+                        <option value="">Choisir un produit</option>
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Quantite</span>
+                    <input type="number" name="quantite" min="1" value="1" required>
+                </label>
+            {% endif %}
+
+            <label class="field">
+                <span>Statut</span>
+                <select name="statut">
+                    {% for status in statuses %}
+                        <option value="{{ status }}" {{ isEditing and editOrder.statut == status ? 'selected' : '' }}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="btn-primary">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+                {% if isEditing %}
+                    <a href="{{ path('admin_orders_index') }}" class="btn-ghost">Annuler</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <div class="admin-tools">
+            <label class="field">
+                <span>Recherche</span>
+                <input type="search" placeholder="ID, email, statut..." oninput="filterTable(this, 'orders-table')">
+            </label>
+        </div>
+
+        <div class="table-panel">
+            <table id="orders-table" class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="th">ID</th>
+                        <th class="th">Client</th>
+                        <th class="th">Total</th>
+                        <th class="th">Statut</th>
+                        <th class="th">Creee le</th>
+                        <th class="th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr class="tr">
+                            <td class="td-bold">#{{ order.id }}</td>
+                            <td class="td">
+                                {% if order.user %}
+                                    {{ (order.user.prenom ~ ' ' ~ order.user.nom)|trim ?: order.user.email }}
+                                {% else %}
+                                    Client inconnu
+                                {% endif %}
+                            </td>
+                            <td class="td">{{ order.total|number_format(2, ',', ' ') }} TND</td>
+                            <td class="td"><span class="status-badge">{{ order.statut }}</span></td>
+                            <td class="td">{{ order.createdAt ? order.createdAt|date('Y-m-d H:i') : '-' }}</td>
+                            <td class="td">
+                                <div class="admin-row-actions">
+                                    <a href="{{ path('admin_orders_index', { edit: order.id }) }}" class="btn-ghost">Modifier</a>
+                                    <form method="post" action="{{ path('admin_orders_delete', { id: order.id }) }}" onsubmit="return confirm('Supprimer cette commande ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_order_delete_' ~ order.id) }}">
+                                        <button type="submit" class="btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr class="tr">
+                            <td class="td" colspan="6">Aucune commande.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
