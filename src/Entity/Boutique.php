@@ -37,7 +37,7 @@ class Boutique
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo_couverture = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: Categorie::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Categorie $categorie = null;
 

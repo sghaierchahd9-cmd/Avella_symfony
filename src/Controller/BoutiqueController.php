@@ -18,14 +18,26 @@ final class BoutiqueController extends AbstractController
 {
    // main pages (listes et filtrage )
     #[Route('/boutiques', name: 'app_boutique')]
-    public function boutiques(CategorieRepository $categorieRepo,BoutiqueRepository $boutiqueRepo): Response
-    {
+    public function boutiques(
+        Request $request,
+        CategorieRepository $categorieRepo,
+        BoutiqueRepository $boutiqueRepo
+    ): Response {
+        $limit = 6;
+        $page  = max(1, (int) $request->query->get('page', 1));
+
         $categories = $categorieRepo->findAll();
-        $boutiques = $boutiqueRepo->findAllActive();
+        $data       = $boutiqueRepo->findPaginated($page, $limit);
+
+        $totalPages = (int) ceil($data['total'] / $limit);
 
         return $this->render('boutique/listeBoutiques.html.twig', [
-            'categories' => $categories,
-            'boutiques' => $boutiques
+            'categories'  => $categories,
+            'boutiques'   => $data['results'],
+            'currentPage' => $page,
+            'totalPages'  => $totalPages,
+            'total'       => $data['total'],
+            'limit'       => $limit,
         ]);
     }
 //rechercher et filtrage
@@ -37,37 +49,40 @@ final class BoutiqueController extends AbstractController
      */
     #[Route('/boutiques/recherche', name: 'app_boutique_search')]
     public function recherche(
-        Request           $request,
+        Request $request,
         BoutiqueRepository $boutiqueRepo
     ): JsonResponse {
-
         $search      = trim($request->query->get('search', ''));
         $categorieId = (int) $request->query->get('categorie_id', 0);
+        $page        = max(1, (int) $request->query->get('page', 1));
+        $limit       = 6;
+        $offset      = ($page - 1) * $limit;
 
-
-        // ─ même logique que search_boutiques.php ─
-      if ($categorieId > 0 && $search !== '') {
-            $boutiques   = $boutiqueRepo->findByCategorie($categorieId);
+        if ($categorieId > 0 && $search !== '') {
             $searchLower = mb_strtolower($search);
-            $boutiques   = array_values(array_filter(
-                $boutiques,
+            // Pour ce cas combiné : on filtre en PHP (comme avant)
+            // mais on pagine via offset/limit sur la catégorie
+            $all = $boutiqueRepo->findByCategoriePaginated($categorieId, 1000, 0);
+            $all = array_values(array_filter(
+                $all,
                 fn($b) => str_contains(mb_strtolower($b->getNom()), $searchLower)
             ));
-
-
+            $total     = count($all);
+            $boutiques = array_slice($all, $offset, $limit);
 
         } elseif ($categorieId > 0) {
-            $boutiques = $boutiqueRepo->findByCategorie($categorieId);
+            $total     = $boutiqueRepo->countByCategorie($categorieId);
+            $boutiques = $boutiqueRepo->findByCategoriePaginated($categorieId, $limit, $offset);
 
         } elseif ($search !== '') {
-            $boutiques = $boutiqueRepo->findByName($search);
+            $total     = $boutiqueRepo->countByName($search);
+            $boutiques = $boutiqueRepo->findByNamePaginated($search, $limit, $offset);
 
         } else {
-            $boutiques = $boutiqueRepo->findAll();
-
+            $total     = $boutiqueRepo->countActive();
+            $boutiques = $boutiqueRepo->findAllActivePaginated($limit, $offset);
         }
 
-        // ─ sérialisation manuelle
         $result = array_map(fn($b) => [
             'id'            => $b->getId(),
             'nom'           => $b->getNom(),
@@ -77,9 +92,13 @@ final class BoutiqueController extends AbstractController
         ], $boutiques);
 
         return $this->json([
-            'success'   => true,
-            'boutiques' => $result,
-            'count'     => count($result),
+            'success'     => true,
+            'boutiques'   => $result,
+            'count'       => count($result),
+            'total'       => $total,
+            'page'        => $page,
+            'totalPages'  => (int) ceil($total / $limit),
+            'limit'       => $limit,
         ]);
     }
     #[Route('/seller/boutique/enregistrer', name: 'seller_boutique_enregistrer', methods: ['POST'])]
