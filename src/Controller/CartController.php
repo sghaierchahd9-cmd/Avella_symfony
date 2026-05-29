@@ -62,11 +62,36 @@ class CartController extends AbstractController
     {
         /** @var \App\Entity\User $user */
         $user     = $this->getUser();
-        $itemId   = (int) $request->request->get('item_id', 0);
+        $itemId   = (int) ($request->request->get('item_id') ?? $request->request->get('cp_id', 0));
+        $action   = (string) $request->request->get('action', '');
         $quantite = (int) $request->request->get('quantite', 1);
 
         if ($itemId <= 0) {
             return $this->json(['success' => false, 'message' => 'Item invalide.']);
+        }
+
+        if ($action !== '') {
+            $cartData = $cartService->getCartData($user);
+            $item = null;
+
+            foreach ($cartData['items'] as $cartItem) {
+                if ($cartItem->getId() === $itemId) {
+                    $item = $cartItem;
+                    break;
+                }
+            }
+
+            if ($item === null) {
+                return $this->json(['success' => false, 'message' => 'Item introuvable.']);
+            }
+
+            $currentQty = (int) $item->getQuantite();
+            $quantite = match ($action) {
+                'plus', 'increment' => $currentQty + 1,
+                'minus', 'decrement' => $currentQty - 1,
+                'remove' => 0,
+                default => $quantite,
+            };
         }
 
         $count = $cartService->updateItem($user, $itemId, $quantite);
@@ -75,9 +100,26 @@ class CartController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Item introuvable.']);
         }
 
+        $cartData = $cartService->getCartData($user);
+        $updatedItem = null;
+
+        foreach ($cartData['items'] as $cartItem) {
+            if ($cartItem->getId() === $itemId) {
+                $updatedItem = $cartItem;
+                break;
+            }
+        }
+
         return $this->json([
             'success'    => true,
             'cart_count' => $count,
+            'cart_empty' => count($cartData['items']) === 0,
+            'cart_total' => number_format((float) $cartData['total'], 2, '.', ''),
+            'removed'    => $updatedItem === null,
+            'item_qty'   => $updatedItem?->getQuantite(),
+            'item_sub'   => $updatedItem
+                ? number_format((float) $updatedItem->getProduit()->getPrix() * $updatedItem->getQuantite(), 2, '.', '')
+                : '0.00',
         ]);
     }
 

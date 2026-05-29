@@ -198,7 +198,10 @@ class CartService
             return false;
         }
 
-        // Cascade delete handles commande_produits rows (FK ON DELETE CASCADE).
+        foreach ($this->getCartItems($commande) as $item) {
+            $this->em->remove($item);
+        }
+
         $this->em->remove($commande);
         $this->em->flush();
 

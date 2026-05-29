@@ -302,6 +302,11 @@
                         Confirmer la commande
                     </button>
                 </form>
+                <button type="button"
+                        id="cart-cancel-btn"
+                        class="mt-2 w-full rounded-2xl border border-red-300 bg-white/40 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-50">
+                    Annuler le panier
+                </button>
             </div>
         </aside>
     </div>
@@ -450,9 +455,84 @@
         if (!content) return;
         fetch('{{ path("cart_fragment") }}')
             .then(r => r.text())
-            .then(html => { content.innerHTML = html; })
+            .then(html => {
+                content.innerHTML = html;
+                syncCartTotal();
+            })
             .catch(() => { content.innerHTML = '<p class="text-center text-red-500 py-8">Erreur de chargement</p>'; });
     }
+
+    function syncCartTotal() {
+        const total = document.getElementById('cart-fragment-total')?.dataset.total || '0.00';
+        const totalEl = document.getElementById('cart-total');
+        if (totalEl) totalEl.textContent = Number(total).toFixed(3) + ' TND';
+    }
+
+    function updateCartBadge(count) {
+        const badge = document.getElementById('navbar-cart-count');
+        if (!badge) return;
+        badge.textContent = count;
+        badge.classList.toggle('hidden', Number(count) === 0);
+    }
+
+    function updateCartItem(itemId, action) {
+        fetch('{{ path("cart_modifier") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `item_id=${encodeURIComponent(itemId)}&action=${encodeURIComponent(action)}`,
+            credentials: 'same-origin'
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                updateCartBadge(data.cart_count);
+                loadCartFragment();
+            });
+    }
+
+    document.getElementById('cart-content')?.addEventListener('click', function(e) {
+        const qtyBtn = e.target.closest('.avella-qty-btn');
+        if (qtyBtn) {
+            updateCartItem(qtyBtn.dataset.cpId || qtyBtn.dataset.itemId, qtyBtn.dataset.action);
+            return;
+        }
+
+        const removeBtn = e.target.closest('.avella-cart-remove');
+        if (removeBtn) {
+            updateCartItem(removeBtn.dataset.cpId || removeBtn.dataset.itemId, 'remove');
+        }
+    });
+
+    document.getElementById('cart-cancel-btn')?.addEventListener('click', function() {
+        if (!window.confirm('Annuler tout le panier ?')) return;
+
+        const cancelBtn = this;
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Annulation...';
+
+        fetch('{{ path("cart_vider") }}', {
+            method: 'POST',
+            credentials: 'same-origin'
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.message || 'Impossible d annuler le panier.');
+                    return;
+                }
+                updateCartBadge(0);
+                const totalEl = document.getElementById('cart-total');
+                if (totalEl) totalEl.textContent = '0.000 TND';
+                loadCartFragment();
+            })
+            .catch(() => {
+                alert('Erreur reseau pendant l annulation du panier.');
+            })
+            .finally(() => {
+                cancelBtn.disabled = false;
+                cancelBtn.textContent = 'Annuler le panier';
+            });
+    });
 
     // ── Add to cart AJAX ──────────────────────────────────────────────────────────
     document.addEventListener('click', function(e) {

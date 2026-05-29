@@ -9,6 +9,16 @@
 (() => {
     'use strict';
 
+    const ROUTES = window.AVELLA_ROUTES || {
+        addToCart: '/buyer/add-to-cart',
+        updateCart: '/buyer/update-cart',
+        cancelCart: '/buyer/cancel-cart',
+        confirmOrder: '/buyer/confirm-order',
+        cartFragment: '/buyer/cart',
+        getCart: '/buyer/get-cart',
+        login: '/login',
+    };
+
     /* ── Resolve current page directory ──────────────────────────
        /pages/buyer/buyer-dashboard.php → /pages/buyer/
        So fetch(dir() + 'add_to_cart.php') = /pages/buyer/add_to_cart.php ✓
@@ -28,10 +38,10 @@
 
     /* ── Init ─────────────────────────────────────────────────── */
     document.addEventListener('DOMContentLoaded', () => {
-        overlay          = document.getElementById('avella-cart-overlay');
-        modal            = document.getElementById('avella-cart-modal');
-        cartBody         = document.getElementById('avella-cart-body');
-        cartFooter       = document.getElementById('avella-cart-footer');
+        overlay          = document.getElementById('avella-cart-overlay') || document.getElementById('cart-modal-overlay') || document.getElementById('cart-modal');
+        modal            = document.getElementById('avella-cart-modal') || document.getElementById('cart-modal-panel') || document.getElementById('cart-panel');
+        cartBody         = document.getElementById('avella-cart-body') || document.getElementById('cart-body') || document.getElementById('cart-content');
+        cartFooter       = document.getElementById('avella-cart-footer') || document.getElementById('cart-footer');
         confirmDialog    = document.getElementById('avella-confirm-dialog');
         confirmOkBtn     = document.getElementById('avella-confirm-ok');
         confirmCancelBtn = document.getElementById('avella-confirm-cancel');
@@ -47,7 +57,7 @@
         }
 
         /* Cart close button */
-        const closeBtn = document.getElementById('cart-close-btn');
+        const closeBtn = document.getElementById('cart-close-btn') || document.getElementById('close-cart');
         if (closeBtn) closeBtn.addEventListener('click', closeCart);
 
         /* Click overlay to close */
@@ -85,13 +95,23 @@
     /* ── Open / close ─────────────────────────────────────────── */
     function openCart() {
         if (!overlay) return;
-        overlay.classList.add('open');
+        overlay.classList.add('open', 'pointer-events-auto', 'opacity-100');
+        overlay.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
+        if (modal) {
+            modal.classList.add('translate-x-0');
+            modal.classList.remove('translate-x-full');
+        }
         overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
     }
     function closeCart() {
         if (!overlay) return;
-        overlay.classList.remove('open');
+        overlay.classList.remove('open', 'pointer-events-auto', 'opacity-100');
+        overlay.classList.add('pointer-events-none', 'opacity-0');
+        if (modal) {
+            modal.classList.remove('translate-x-0');
+            modal.classList.add('translate-x-full');
+        }
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
@@ -133,7 +153,7 @@
 
     /* ── Refresh cart body ────────────────────────────────────── */
     function refreshCartBody() {
-        return fetch(window.AVELLA_ROUTES.cartFragment, { credentials: 'same-origin' })
+        return fetch(ROUTES.cartFragment, { credentials: 'same-origin' })
             .then(r => r.text())
             .then(html => {
                 if (!cartBody) return;
@@ -223,7 +243,7 @@
             b.innerHTML = '⏳ Ajout...';
         });
 
-        fetch(window.AVELLA_ROUTES.addToCart, {
+        fetch(ROUTES.addToCart, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'produit_id=' + encodeURIComponent(produitId) + '&quantite=' + encodeURIComponent(qty),
@@ -279,7 +299,7 @@
         if (row)  row.style.opacity = '0.5';
         if (btns) btns.forEach(b => b.disabled = true);
 
-        fetch(window.AVELLA_ROUTES.updateCart, {
+        fetch(ROUTES.updateCart, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'cp_id=' + encodeURIComponent(cpId) + '&action=' + encodeURIComponent(action),
@@ -341,7 +361,7 @@
 
         if (confirmOkBtn) { confirmOkBtn.disabled = true; confirmOkBtn.textContent = '...'; }
 
-        fetch(window.AVELLA_ROUTES.confirmOrder, {
+        fetch(ROUTES.confirmOrder, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'commande_id=' + encodeURIComponent(cid),
@@ -371,15 +391,14 @@
 
     /* ── Cancel / empty cart ──────────────────────────────────── */
     function handleCancelCart() {
-        const btn = document.getElementById('avella-cancel-btn');
+        const btn = document.getElementById('avella-cancel-btn') || document.getElementById('cancel-cart-btn') || document.getElementById('cart-cancel-btn');
         const cid = btn && btn.dataset.commandeId;
-        if (!cid) return;
         if (!window.confirm('Vider votre panier ? Cette action est irréversible.')) return;
 
-        fetch(dir() + 'buyer/cancel-cart.php', {
+        fetch(ROUTES.cancelCart, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'commande_id=' + encodeURIComponent(cid),
+            body: 'commande_id=' + encodeURIComponent(cid || ''),
             credentials: 'same-origin',
         })
             .then(r => r.json())
