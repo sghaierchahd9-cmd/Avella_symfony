@@ -78,10 +78,6 @@
 
         {# Footer actions #}
         <div id="cart-footer" class="border-t border-gray-100 px-5 py-4 space-y-3">
-            <div class="flex items-center justify-between text-sm font-semibold text-gray-800">
-                <span>Total</span>
-                <span id="cart-total-display">—</span>
-            </div>
 
             <form id="confirm-order-form"
                   method="post"
@@ -93,11 +89,16 @@
                 </button>
             </form>
 
-            <button id="cancel-cart-btn"
+            <form  id="cancel-cart-btn"
+                  method="post"
+                  action="{{ path('cart_vider') }}">
+            <button
+
                     class="w-full py-2 border border-red-300 text-red-600 text-sm font-medium rounded-xl
                            hover:bg-red-50 transition-colors">
                 Vider le panier
             </button>
+            </form>
         </div>
     </div>{# /panel #}
 </div>{# /overlay #}

@@ -35,7 +35,7 @@
                 {# Thumbnail #}
                 <div class="h-14 w-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     {% if produit.image %}
-                        <img src="{{ asset('images/' ~ produit.image) }}"
+                        <img src="{{ asset( produit.image) }}"
                              alt="{{ produit.nom }}"
                              class="h-full w-full object-cover">
                     {% else %}
