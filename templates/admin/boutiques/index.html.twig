@@ -1,0 +1,138 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% set admin_page = 'boutiques' %}
+
+{% block admin_title %}Boutiques{% endblock %}
+{% block admin_page_title %}Boutiques{% endblock %}
+
+{% block admin_body %}
+    <section class="glass-panel">
+        <div class="admin-section-head">
+            <div>
+                <h1 class="admin-section-title">Boutiques</h1>
+                <p class="admin-section-copy">Gestion des boutiques enregistrees.</p>
+            </div>
+            <div class="admin-count">{{ boutiques|length }} boutiques</div>
+        </div>
+
+        {% set isEditing = editBoutique is defined and editBoutique %}
+        <form
+            method="post"
+            action="{{ isEditing ? path('admin_boutiques_update', { id: editBoutique.id }) : path('admin_boutiques_create') }}"
+            class="admin-form-grid"
+        >
+            <input type="hidden" name="_token" value="{{ csrf_token(isEditing ? 'admin_boutique_update_' ~ editBoutique.id : 'admin_boutique_create') }}">
+
+            <label class="field">
+                <span>Nom</span>
+                <input name="nom" value="{{ isEditing ? editBoutique.nom : '' }}" required>
+            </label>
+
+            <label class="field">
+                <span>Proprietaire</span>
+                <select name="user_id">
+                    <option value="">Sans proprietaire</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}" {{ isEditing and editBoutique.userId and editBoutique.userId.id == user.id ? 'selected' : '' }}>
+                            {{ (user.prenom ~ ' ' ~ user.nom)|trim ?: user.email }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Categorie</span>
+                <select name="categorie_id" required>
+                    <option value="">Choisir une categorie</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {{ isEditing and editBoutique.categorie and editBoutique.categorie.id == category.id ? 'selected' : '' }}>
+                            {{ category.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Statut</span>
+                <select name="statut">
+                    <option value="actif" {{ isEditing and editBoutique.statut == 'actif' ? 'selected' : '' }}>Actif</option>
+                    <option value="inactif" {{ isEditing and editBoutique.statut == 'inactif' ? 'selected' : '' }}>Inactif</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Photo</span>
+                <input name="photo" value="{{ isEditing ? editBoutique.photo : '' }}">
+            </label>
+
+            <label class="field">
+                <span>Photo couverture</span>
+                <input name="photo_couverture" value="{{ isEditing ? editBoutique.photoCouverture : '' }}">
+            </label>
+
+            <label class="field">
+                <span>Description</span>
+                <textarea name="description" rows="2">{{ isEditing ? editBoutique.description : '' }}</textarea>
+            </label>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="btn-primary">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+                {% if isEditing %}
+                    <a href="{{ path('admin_boutiques_index') }}" class="btn-ghost">Annuler</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <div class="admin-tools">
+            <label class="field">
+                <span>Recherche</span>
+                <input type="search" placeholder="Nom, statut, categorie..." oninput="filterTable(this, 'boutiques-table')">
+            </label>
+        </div>
+
+        <div class="table-panel">
+            <table id="boutiques-table" class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="th">Nom</th>
+                        <th class="th">Proprietaire</th>
+                        <th class="th">Categorie</th>
+                        <th class="th">Statut</th>
+                        <th class="th">Creee le</th>
+                        <th class="th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for boutique in boutiques %}
+                        <tr class="tr">
+                            <td class="td-bold">{{ boutique.nom }}</td>
+                            <td class="td">
+                                {% if boutique.userId %}
+                                    {{ (boutique.userId.prenom ~ ' ' ~ boutique.userId.nom)|trim ?: boutique.userId.email }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="td">{{ boutique.categorie ? boutique.categorie.nom : '-' }}</td>
+                            <td class="td"><span class="status-badge">{{ boutique.statut }}</span></td>
+                            <td class="td">{{ boutique.createdAt ? boutique.createdAt|date('Y-m-d H:i') : '-' }}</td>
+                            <td class="td">
+                                <div class="admin-row-actions">
+                                    <a href="{{ path('admin_boutiques_index', { edit: boutique.id }) }}" class="btn-ghost">Modifier</a>
+                                    <form method="post" action="{{ path('admin_boutiques_delete', { id: boutique.id }) }}" onsubmit="return confirm('Supprimer cette boutique ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_boutique_delete_' ~ boutique.id) }}">
+                                        <button type="submit" class="btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr class="tr">
+                            <td class="td" colspan="6">Aucune boutique.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

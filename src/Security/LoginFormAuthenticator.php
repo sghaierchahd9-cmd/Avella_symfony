@@ -48,14 +48,15 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $user = $token->getUser();
         $roles = $user->getRoles();
 
-        if (in_array('ROLE_VENDEUR', $roles)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_register')); // remplace par ta route vendeur
-        }
-        if (in_array('ROLE_ADMIN', $roles)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_register')); // remplace par ta route admin
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
 
-        return new RedirectResponse($this->urlGenerator->generate('app_register')); // remplace par ta route buyer
+        if (in_array('ROLE_VENDEUR', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('seller_dashboard'));
+        }
+
+        return new RedirectResponse($this->urlGenerator->generate('buyer_dashboard'));
     }
 
     protected function getLoginUrl(Request $request): string

@@ -1,0 +1,126 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% set admin_page = 'products' %}
+
+{% block admin_title %}Produits{% endblock %}
+{% block admin_page_title %}Produits{% endblock %}
+
+{% block admin_body %}
+    <section class="glass-panel">
+        <div class="admin-section-head">
+            <div>
+                <h1 class="admin-section-title">Produits</h1>
+                <p class="admin-section-copy">Gestion des produits du catalogue.</p>
+            </div>
+            <div class="admin-count">{{ products|length }} produits</div>
+        </div>
+
+        {% set isEditing = editProduct is defined and editProduct %}
+        <form
+            method="post"
+            action="{{ isEditing ? path('admin_products_update', { id: editProduct.id }) : path('admin_products_create') }}"
+            class="admin-form-grid"
+        >
+            <input type="hidden" name="_token" value="{{ csrf_token(isEditing ? 'admin_product_update_' ~ editProduct.id : 'admin_product_create') }}">
+
+            <label class="field">
+                <span>Nom</span>
+                <input name="nom" value="{{ isEditing ? editProduct.nom : '' }}" required>
+            </label>
+
+            <label class="field">
+                <span>Prix</span>
+                <input type="number" step="0.01" min="0" name="prix" value="{{ isEditing ? editProduct.prix : '' }}" required>
+            </label>
+
+            <label class="field">
+                <span>Boutique</span>
+                <select name="boutique_id" required>
+                    <option value="">Choisir une boutique</option>
+                    {% for boutique in boutiques %}
+                        <option value="{{ boutique.id }}" {{ isEditing and editProduct.boutique and editProduct.boutique.id == boutique.id ? 'selected' : '' }}>
+                            {{ boutique.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Categorie</span>
+                <select name="categorie_id">
+                    <option value="">Sans categorie</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {{ isEditing and editProduct.categorie and editProduct.categorie.id == category.id ? 'selected' : '' }}>
+                            {{ category.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Image</span>
+                <input name="image" value="{{ isEditing ? editProduct.image : '' }}" placeholder="produit.png">
+            </label>
+
+            <label class="field">
+                <span>Description</span>
+                <textarea name="description" rows="2">{{ isEditing ? editProduct.description : '' }}</textarea>
+            </label>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="btn-primary">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+                {% if isEditing %}
+                    <a href="{{ path('admin_products_index') }}" class="btn-ghost">Annuler</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <div class="admin-tools">
+            <label class="field">
+                <span>Recherche</span>
+                <input type="search" placeholder="Nom, boutique, image..." oninput="filterTable(this, 'products-table')">
+            </label>
+        </div>
+
+        <div class="table-panel">
+            <table id="products-table" class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="th">Nom</th>
+                        <th class="th">Boutique</th>
+                        <th class="th">Categorie</th>
+                        <th class="th">Prix</th>
+                        <th class="th">Image</th>
+                        <th class="th">Cree le</th>
+                        <th class="th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr class="tr">
+                            <td class="td-bold">{{ product.nom }}</td>
+                            <td class="td">{{ product.boutique ? product.boutique.nom : 'Boutique inconnue' }}</td>
+                            <td class="td">{{ product.categorie ? product.categorie.nom : '-' }}</td>
+                            <td class="td">{{ product.prix|number_format(2, ',', ' ') }} TND</td>
+                            <td class="td">{{ product.image ?: '-' }}</td>
+                            <td class="td">{{ product.createdAt ? product.createdAt|date('Y-m-d H:i') : '-' }}</td>
+                            <td class="td">
+                                <div class="admin-row-actions">
+                                    <a href="{{ path('admin_products_index', { edit: product.id }) }}" class="btn-ghost">Modifier</a>
+                                    <form method="post" action="{{ path('admin_products_delete', { id: product.id }) }}" onsubmit="return confirm('Supprimer ce produit ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_product_delete_' ~ product.id) }}">
+                                        <button type="submit" class="btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr class="tr">
+                            <td class="td" colspan="7">Aucun produit.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

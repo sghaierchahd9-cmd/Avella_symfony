@@ -1,0 +1,86 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% set admin_page = 'categories' %}
+
+{% block admin_title %}Categories{% endblock %}
+{% block admin_page_title %}Categories{% endblock %}
+
+{% block admin_body %}
+    <section class="glass-panel">
+        <div class="admin-section-head">
+            <div>
+                <h1 class="admin-section-title">Categories</h1>
+                <p class="admin-section-copy">Gestion des categories du catalogue.</p>
+            </div>
+            <div class="admin-count">{{ categories|length }} categories</div>
+        </div>
+
+        {% set isEditing = editCategory is defined and editCategory %}
+        <form
+            method="post"
+            action="{{ isEditing ? path('admin_categories_update', { id: editCategory.id }) : path('admin_categories_create') }}"
+            class="admin-form-grid"
+        >
+            <input type="hidden" name="_token" value="{{ csrf_token(isEditing ? 'admin_category_update_' ~ editCategory.id : 'admin_category_create') }}">
+
+            <label class="field">
+                <span>Nom</span>
+                <input name="nom" value="{{ isEditing ? editCategory.nom : '' }}" required>
+            </label>
+
+            <label class="field">
+                <span>Photo</span>
+                <input name="photo" value="{{ isEditing ? editCategory.photo : '' }}" placeholder="categorie.png">
+            </label>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="btn-primary">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+                {% if isEditing %}
+                    <a href="{{ path('admin_categories_index') }}" class="btn-ghost">Annuler</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <div class="admin-tools">
+            <label class="field">
+                <span>Recherche</span>
+                <input type="search" placeholder="Nom de categorie..." oninput="filterTable(this, 'categories-table')">
+            </label>
+        </div>
+
+        <div class="table-panel">
+            <table id="categories-table" class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="th">Nom</th>
+                        <th class="th">Photo</th>
+                        <th class="th">Creee le</th>
+                        <th class="th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr class="tr">
+                            <td class="td-bold">{{ category.nom }}</td>
+                            <td class="td">{{ category.photo ?: '-' }}</td>
+                            <td class="td">{{ category.createdAt ? category.createdAt|date('Y-m-d H:i') : '-' }}</td>
+                            <td class="td">
+                                <div class="admin-row-actions">
+                                    <a href="{{ path('admin_categories_index', { edit: category.id }) }}" class="btn-ghost">Modifier</a>
+                                    <form method="post" action="{{ path('admin_categories_delete', { id: category.id }) }}" onsubmit="return confirm('Supprimer cette categorie ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_category_delete_' ~ category.id) }}">
+                                        <button type="submit" class="btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr class="tr">
+                            <td class="td" colspan="4">Aucune categorie.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
