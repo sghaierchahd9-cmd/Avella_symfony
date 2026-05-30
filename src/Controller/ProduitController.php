@@ -64,7 +64,7 @@ class ProduitController extends AbstractController
                 $produit->setImage($newFilename);
             }
 
-            $produit->setCreatedAt(new \DateTime());
+
 
             // Lier le produit à la boutique du vendeur connecté
             $produit->setBoutique($this->getUser()->getBoutique());
@@ -109,7 +109,7 @@ class ProduitController extends AbstractController
                 $produit->setImage($newFilename);
             }
 
-            $produit->setUpdatedAt(new \DateTime());
+
             $em->flush();
 
             return $this->redirectToRoute('seller_dashboard');
